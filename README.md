@@ -82,9 +82,9 @@ I'm a passionate full-stack developer and data scientist focused on building inn
 ### 🎓 Education
 | Degree/Level | Institution | Duration | Result/Focus |
 |--------------|-------------|----------|--------------|
-| **B.Sc. in CSE** | East West University, Dhaka | Expected 2026 | CGPA: 3.32 / 4.00 |
-| **HSC** | Comilla Government College | 2021 | GPA: 5.00 / 5.00 |
-| **SSC** | Comilla Modern High School | 2019 | GPA: 5.00 / 5.00 |
+| **B.Sc. in CSE** | East West University, Dhaka | Expected 2026 | Major: Data Science |
+| **HSC** | Comilla Government College | 2021 | Science |
+| **SSC** | Comilla Modern High School | 2019 | Science |
 
 ### 🛠️ Professional Experience
 | Role | Organization | Duration | Highlights |
