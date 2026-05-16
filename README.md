@@ -57,6 +57,17 @@ I'm a passionate full-stack developer and data scientist focused on building inn
 ![Jupyter](https://img.shields.io/badge/Jupyter-F37726?style=flat-square&logo=jupyter&logoColor=white)
 ![FAISS](https://img.shields.io/badge/FAISS-00A4EF?style=flat-square&logo=meta&logoColor=white)
 
+### Reporting & Analytics
+![Excel](https://img.shields.io/badge/Microsoft%20Excel-217346?style=flat-square&logo=microsoft-excel&logoColor=white)
+![Power BI](https://img.shields.io/badge/Power%20BI-F2C811?style=flat-square&logo=power-bi&logoColor=black)
+![Reporting](https://img.shields.io/badge/MIS%20Reporting-0078D4?style=flat-square&logo=microsoft&logoColor=white)
+![Analytics](https://img.shields.io/badge/Data%20Analysis-FF6F00?style=flat-square&logo=analytics&logoColor=white)
+
+### Operations & Admin
+![Operations](https://img.shields.io/badge/Operations-0078D4?style=flat-square&logo=workplace&logoColor=white)
+![Coordination](https://img.shields.io/badge/Coordination-FF4B4B?style=flat-square&logo=teamviewer&logoColor=white)
+![Admin](https://img.shields.io/badge/Administrative%20Skills-4285F4?style=flat-square&logo=google-workspace&logoColor=white)
+
 ### Tools & Technologies
 ![Git](https://img.shields.io/badge/Git-F05032?style=flat-square&logo=git&logoColor=white)
 ![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white)
@@ -66,13 +77,24 @@ I'm a passionate full-stack developer and data scientist focused on building inn
 
 ---
 
-## 💼 Professional Experience
+## 💼 Education & Experience
 
+### 🎓 Education
+| Degree/Level | Institution | Duration | Result/Focus |
+|--------------|-------------|----------|--------------|
+| **B.Sc. in CSE** | East West University, Dhaka | Expected 2026 | CGPA: 3.32 / 4.00 |
+| **HSC** | Comilla Government College | 2021 | GPA: 5.00 / 5.00 |
+| **SSC** | Comilla Modern High School | 2019 | GPA: 5.00 / 5.00 |
+
+### 🛠️ Professional Experience
 | Role | Organization | Duration | Highlights |
 |------|--------------|----------|-----------|
 | **Full-Stack Developer** | Multiple Projects | 2023 - Present | Developed 15+ scalable web applications and ML models |
 | **Data Science Enthusiast** | Open Source Community | 2024 - Present | Contributing to ML and advanced data analysis projects |
 | **Technical Contributor** | Open Source Initiatives | 2023 - Present | Active contributor to community-driven projects |
+| **Associate Executive** | East West University Robotics Club | 2024 - Present | Volunteer Trainer, Event & Logistics Coordinator |
+| **Dedicated Volunteer** | EWU CSE Fest & Robo Fest 2024 | 2024 | Logistics and event flow management |
+| **Leadership Roles** | CGC Science Club | 2020 - 2021 | Event & Logistics Manager (Science Club) |
 
 ---
 
