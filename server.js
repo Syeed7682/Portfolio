@@ -246,7 +246,7 @@ async function connectDB() {
                 {
                     title: "MedRAG-VQA",
                     description: "Multimodal RAG pipeline for clinical Q&A on X-rays/MRIs using BiomedCLIP and LLaVA-1.5-7B.",
-                    image: "image/og_preview.png",
+                    image: "image/rag.png",
                     link: "https://github.com/Syeed7682",
                     type: "AI / ML",
                     createdAt: new Date().toISOString()
@@ -254,7 +254,7 @@ async function connectDB() {
                 {
                     title: "FAISS Similarity Search",
                     description: "Benchmarking FAISS indexes (HNSW, IVFFlat) on SIFT1M dataset with performance visualizations.",
-                    image: "image/og_preview.png",
+                    image: "image/faiss.jpg",
                     link: "https://github.com/Syeed7682",
                     type: "Data Science",
                     createdAt: new Date().toISOString()
@@ -262,41 +262,33 @@ async function connectDB() {
                 {
                     title: "IoT Smart Home",
                     description: "Real-time monitoring and control system for Tuya IoT devices with environmental analytics.",
-                    image: "image/og_preview.png",
+                    image: "image/iot smart.jpg",
                     link: "https://github.com/Syeed7682",
                     type: "IoT",
                     createdAt: new Date().toISOString()
                 },
                 {
+                    title: "Cine-Mela",
+                    description: "Movie recommender system with reinforcement learning.",
+                    image: "image/cinemela.jpg",
+                    link: "https://github.com/Syeed7682",
+                    type: "Data Science",
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    title: "Bangladesh Election Dashboard 2026",
+                    description: "Live dashboard for election forecasting and real-time visualization.",
+                    image: "image/Election dashboard.jpg",
+                    link: "https://github.com/Syeed7682",
+                    type: "Data Science",
+                    createdAt: new Date().toISOString()
+                },
+                {
                     title: "E-Commerce System",
                     description: "Complete e-commerce platform with secure payment integration.",
-                    image: "image/og_preview.png",
+                    image: "image/Portfolio_cover.jpg",
                     link: "https://github.com/Syeed7682",
                     type: "Web App",
-                    createdAt: new Date().toISOString()
-                },
-                {
-                    title: "Hospital Management System",
-                    description: "Comprehensive hospital management solution with GUI built in Java.",
-                    image: "image/og_preview.png",
-                    link: "https://github.com/Syeed7682/Hospital-Management-System-Java",
-                    type: "Desktop App",
-                    createdAt: new Date().toISOString()
-                },
-                {
-                    title: "Expense Tracker",
-                    description: "Personal expense management and analytics tool.",
-                    image: "image/og_preview.png",
-                    link: "https://github.com/Syeed7682/Expance-Tracker",
-                    type: "Web App",
-                    createdAt: new Date().toISOString()
-                },
-                {
-                    title: "Carbon Emission Calculator",
-                    description: "Environmental impact calculator for sustainability tracking.",
-                    image: "image/og_preview.png",
-                    link: "https://github.com/Syeed7682/Carbon-Emission-Calculator",
-                    type: "Utility",
                     createdAt: new Date().toISOString()
                 }
             ];
@@ -324,168 +316,10 @@ async function connectDB() {
         console.error("MongoDB connection error:", error);
     }
 }
-connectDB();
 
 // Admin Route
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
-});
-
-// Generic CRUD helper (optional but kept explicit for clarity)
-
-// Events API
-app.get('/api/events', async (req, res) => {
-    try {
-        if (!eventsCollection) return res.status(500).json({ error: "DB not connected" });
-        const events = await eventsCollection.find().sort({ _id: -1 }).toArray();
-        res.json(events);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.post('/api/events', async (req, res) => {
-    try {
-        if (!eventsCollection) return res.status(500).json({ error: "DB not connected" });
-        const { title, description, image } = req.body;
-        const result = await eventsCollection.insertOne({
-            title,
-            description,
-            image,
-            createdAt: new Date().toISOString()
-        });
-        res.json(result);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.delete('/api/events/:id', async (req, res) => {
-    try {
-        if (!eventsCollection) return res.status(500).json({ error: "DB not connected" });
-        const result = await eventsCollection.deleteOne({ _id: new ObjectId(req.params.id) });
-        res.json({ message: 'Deleted' });
-    } catch (err) {
-        res.status(500).json({ message: 'Error' });
-    }
-});
-
-app.put('/api/events/:id', async (req, res) => {
-    try {
-        if (!eventsCollection) return res.status(500).json({ error: "DB not connected" });
-        const { title, description, image } = req.body;
-        const result = await eventsCollection.updateOne(
-            { _id: new ObjectId(req.params.id) },
-            { $set: { title, description, image, updatedAt: new Date().toISOString() } }
-        );
-        res.json(result);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Certificates API
-app.get('/api/certificates', async (req, res) => {
-    try {
-        if (!certCollection) return res.status(500).json({ error: "DB not connected" });
-        const certs = await certCollection.find().sort({ _id: -1 }).toArray();
-        res.json(certs);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.post('/api/certificates', async (req, res) => {
-    try {
-        if (!certCollection) return res.status(500).json({ error: "DB not connected" });
-        const { title, description, image } = req.body;
-        const result = await certCollection.insertOne({
-            title,
-            description,
-            image,
-            createdAt: new Date().toISOString()
-        });
-        res.json(result);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.delete('/api/certificates/:id', async (req, res) => {
-    try {
-        if (!certCollection) return res.status(500).json({ error: "DB not connected" });
-        const result = await certCollection.deleteOne({ _id: new ObjectId(req.params.id) });
-        res.json({ message: 'Deleted' });
-    } catch (err) {
-        res.status(500).json({ message: 'Error' });
-    }
-});
-
-app.put('/api/certificates/:id', async (req, res) => {
-    try {
-        if (!certCollection) return res.status(500).json({ error: "DB not connected" });
-        const { title, description, image } = req.body;
-        const result = await certCollection.updateOne(
-            { _id: new ObjectId(req.params.id) },
-            { $set: { title, description, image, updatedAt: new Date().toISOString() } }
-        );
-        res.json(result);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Projects API
-app.get('/api/projects', async (req, res) => {
-    try {
-        if (!projectsCollection) return res.status(500).json({ error: "DB not connected" });
-        const projects = await projectsCollection.find().sort({ _id: -1 }).toArray();
-        res.json(projects);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.post('/api/projects', async (req, res) => {
-    try {
-        if (!projectsCollection) return res.status(500).json({ error: "DB not connected" });
-        const { title, description, image, link, type } = req.body;
-        const result = await projectsCollection.insertOne({
-            title,
-            description,
-            image,
-            link,
-            type,
-            createdAt: new Date().toISOString()
-        });
-        res.json(result);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.delete('/api/projects/:id', async (req, res) => {
-    try {
-        if (!projectsCollection) return res.status(500).json({ error: "DB not connected" });
-        const result = await projectsCollection.deleteOne({ _id: new ObjectId(req.params.id) });
-        res.json({ message: 'Deleted' });
-    } catch (err) {
-        res.status(500).json({ message: 'Error' });
-    }
-});
-
-app.put('/api/projects/:id', async (req, res) => {
-    try {
-        if (!projectsCollection) return res.status(500).json({ error: "DB not connected" });
-        const { title, description, image, link, type } = req.body;
-        const result = await projectsCollection.updateOne(
-            { _id: new ObjectId(req.params.id) },
-            { $set: { title, description, image, link, type, updatedAt: new Date().toISOString() } }
-        );
-        res.json(result);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
 });
 
 
