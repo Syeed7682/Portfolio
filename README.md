@@ -87,14 +87,12 @@ I'm a passionate full-stack developer and data scientist focused on building inn
 ### 🌐 Web Applications
 - **[Cine-Mela](https://github.com/Syeed7682/Cine-Mela)** — Full-featured movie discovery platform with user ratings and reviews
 - **[E-Commerce System](https://github.com/Syeed7682/My_E_Commerce_system)** — Complete e-commerce platform with secure payment integration
-- **[Cash Trail](https://github.com/Syeed7682/Cash-Trail-Web-Application-main)** — Intuitive financial tracking and budgeting application
 - **[Expense Tracker](https://github.com/Syeed7682/Expance-Tracker)** — Personal expense management and analytics tool
 
 ### 💡 Desktop & Utility Applications
 - **[Hospital Management System](https://github.com/Syeed7682/Hospital-Management-System-Java)** — Comprehensive hospital management solution with GUI built in Java
 - **[Carbon Emission Calculator](https://github.com/Syeed7682/Carbon-Emission-Calculator)** — Environmental impact calculator for sustainability tracking
 - **[Power Dashboard](https://github.com/Syeed7682/Power-Pulse-Dashboard-)** — Energy analytics and real-time monitoring dashboard
-- **[Portfolio](https://github.com/Syeed7682/Portfolio)** — Personal portfolio website showcasing professional work
 
 ---
 
