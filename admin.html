@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Portfolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: white;
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .text-gradient {
+            background: linear-gradient(to right, #a855f7, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+    <!-- Login Overlay -->
+    <div id="login-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 px-6">
+        <div class="glass-card p-10 rounded-3xl max-w-md w-full text-center">
+            <i class="fa-solid fa-shield-halved text-6xl text-purple-500 mb-6"></i>
+            <h1 class="text-3xl font-bold mb-4">Admin Access</h1>
+            <p class="text-slate-400 mb-8">Please sign in with your authorized Google account to manage your portfolio.
+            </p>
+            <div id="g_id_onload"
+                data-client_id="29203165955-ipvq6fh4ju2pfhsddpsn3qq1kbh8il61.apps.googleusercontent.com"
+                data-context="signin" data-ux_mode="popup" data-callback="handleCredentialResponse"
+                data-auto_prompt="false">
+            </div>
+            <div class="g_id_signin flex justify-center" data-type="standard"></div>
+            <p id="login-error" class="hidden mt-6 text-red-400 bg-red-400/10 py-2 rounded-lg text-sm"></p>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboard" class="hidden">
+        <!-- Sidebar/Nav -->
+        <nav class="border-b border-white/10 bg-slate-900/50 backdrop-blur-md sticky top-0 z-40">
+            <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div
+                        class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                        <i class="fa-solid fa-user-gear text-white text-xs"></i>
+                    </div>
+                    <span class="font-bold text-xl tracking-tight">Admin<span
+                            class="text-purple-500">Panel</span></span>
+                </div>
+                <div class="flex items-center gap-6">
+                    <a href="/" class="text-sm text-slate-400 hover:text-white transition-colors">View Site</a>
+                    <button onclick="logout()"
+                        class="text-sm bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white px-4 py-2 rounded-lg transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-right-from-bracket"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <main class="container mx-auto px-6 py-12">
+            <div class="grid lg:grid-cols-3 gap-8">
+
+                <!-- Left: Form Section -->
+                <div class="lg:col-span-1 space-y-8">
+                    <div class="glass-card p-8 rounded-2xl">
+                        <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+                            <i class="fa-solid fa-plus-circle text-purple-500"></i> Add New Entry
+                        </h2>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label
+                                    class="block text-xs font-semibold text-slate-400 uppercase mb-2">Category</label>
+                                <select id="entry-category" onchange="toggleProjectFields(this.value)"
+                                    class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500 transition-colors">
+                                    <option value="events">Event / Workshop</option>
+                                    <option value="certificates">Achievement</option>
+                                    <option value="projects">Featured Project</option>
+                                    <option value="publications">Research Publication</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Title</label>
+                                <input type="text" id="entry-title" placeholder="e.g. IEEE Conference 2024"
+                                    class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500 transition-colors">
+                            </div>
+
+                            <div>
+                                <label
+                                    class="block text-xs font-semibold text-slate-400 uppercase mb-2">Description</label>
+                                <textarea id="entry-desc" rows="3" placeholder="Brief description of the event..."
+                                    class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500 transition-colors"></textarea>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Media (File or
+                                    URL)</label>
+                                <div class="flex gap-2">
+                                    <input type="file" id="entry-file" accept="image/*,video/*" class="hidden"
+                                        onchange="updateFileLabel(this)">
+                                    <button onclick="document.getElementById('entry-file').click()"
+                                        class="flex-grow bg-slate-800 border border-white/10 border-dashed rounded-xl px-4 py-3 text-sm text-slate-400 hover:border-purple-500 transition-all text-left truncate">
+                                        <i class="fa-solid fa-upload mr-2"></i>
+                                        <span id="file-label">Choose file...</span>
+                                    </button>
+                                </div>
+                                <div class="mt-2 text-center text-xs text-slate-500">— OR —</div>
+                                <input type="text" id="entry-url" placeholder="Paste image/video URL"
+                                    class="mt-2 w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500 transition-colors text-sm">
+                            </div>
+
+                            <div id="project-fields" class="hidden space-y-4 pt-2">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Project Link (GitHub/Live)</label>
+                                    <input type="text" id="entry-link" placeholder="https://github.com/..."
+                                        class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500 transition-colors text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Project Type (Tag)</label>
+                                    <input type="text" id="entry-type" placeholder="e.g. Web App, AI Model"
+                                        class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500 transition-colors text-sm">
+                                </div>
+                            </div>
+
+                            <div id="publication-fields" class="hidden space-y-4 pt-2">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Authors</label>
+                                    <input type="text" id="entry-authors" placeholder="John Doe, Jane Doe"
+                                        class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500 transition-colors text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Conference / Journal</label>
+                                    <input type="text" id="entry-conference" placeholder="e.g. IEEE QPAIN 2025"
+                                        class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500 transition-colors text-sm">
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Year</label>
+                                        <input type="number" id="entry-year" placeholder="2025"
+                                            class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500 transition-colors text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">DOI / Link</label>
+                                        <input type="text" id="entry-pub-link" placeholder="https://doi.org/..."
+                                            class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500 transition-colors text-sm">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button onclick="submitEntry()"
+                                class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-purple-500/20 transform active:scale-[0.98] transition-all mt-4">
+                                <i class="fa-solid fa-paper-plane mr-2"></i> Publish to Portfolio
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Settings Section -->
+                    <div class="glass-card p-8 rounded-2xl">
+                        <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+                            <i class="fa-solid fa-gear text-slate-400"></i> Settings
+                        </h2>
+                        <div class="space-y-4">
+                            <div class="p-4 bg-slate-800/50 border border-white/5 rounded-xl">
+                                <p class="text-xs font-semibold text-slate-400 uppercase mb-1">Authorized Email</p>
+                                <p class="text-sm font-mono text-purple-400">kmsyeedasif@gmail.com</p>
+                                <button onclick="alert('Email change feature coming soon!')"
+                                    class="mt-3 text-xs text-slate-500 hover:text-white underline">Change
+                                    account?</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Manage Section -->
+                <div class="lg:col-span-2">
+                    <div class="glass-card p-8 rounded-2xl min-h-[600px]">
+                        <div class="flex items-center justify-between mb-8">
+                            <h2 class="text-xl font-bold flex items-center gap-2">
+                                <i class="fa-solid fa-list-check text-pink-500"></i> Manage Content
+                            </h2>
+                            <div class="flex bg-slate-800 rounded-lg p-1">
+                                <button onclick="switchTab('events')" id="tab-events"
+                                    class="px-4 py-1.5 rounded-md text-sm font-medium transition-all bg-purple-600 text-white shadow-sm">Events</button>
+                                <button onclick="switchTab('certificates')" id="tab-certificates"
+                                    class="px-4 py-1.5 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white">Achievements</button>
+                                <button onclick="switchTab('projects')" id="tab-projects"
+                                    class="px-4 py-1.5 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white">Projects</button>
+                                <button onclick="switchTab('publications')" id="tab-publications"
+                                    class="px-4 py-1.5 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white">Publications</button>
+                            </div>
+                        </div>
+
+                        <div id="content-list" class="grid sm:grid-cols-2 gap-6">
+                            <!-- Items will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let currentTab = 'events';
+        let editingId = null;
+        const authorizedEmail = 'kmsyeedasif@gmail.com';
+
+        // Check authentication on load
+        window.onload = () => {
+            if (sessionStorage.getItem('isAdmin')) {
+                showDashboard();
+            }
+        };
+
+        function handleCredentialResponse(response) {
+            const payload = parseJwt(response.credential);
+            if (payload.email === authorizedEmail) {
+                sessionStorage.setItem('isAdmin', 'true');
+                showDashboard();
+            } else {
+                const error = document.getElementById('login-error');
+                error.textContent = 'Unauthorized: ' + payload.email;
+                error.classList.remove('hidden');
+            }
+        }
+
+        function parseJwt(token) {
+            var base64Url = token.split('.')[1];
+            var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            return JSON.parse(jsonPayload);
+        }
+
+        function showDashboard() {
+            document.getElementById('login-overlay').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            loadContent();
+        }
+
+        function logout() {
+            sessionStorage.removeItem('isAdmin');
+            location.reload();
+        }
+
+        function updateFileLabel(input) {
+            document.getElementById('file-label').textContent = input.files[0] ? input.files[0].name : 'Choose file...';
+        }
+
+        function toggleProjectFields(category) {
+            const projFields = document.getElementById('project-fields');
+            const pubFields = document.getElementById('publication-fields');
+            
+            projFields.classList.add('hidden');
+            pubFields.classList.add('hidden');
+            
+            if (category === 'projects') {
+                projFields.classList.remove('hidden');
+            } else if (category === 'publications') {
+                pubFields.classList.remove('hidden');
+            }
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            cancelEdit();
+            ['events', 'certificates', 'projects', 'publications'].forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                if (t === tab) {
+                    btn.className = 'px-4 py-1.5 rounded-md text-sm font-medium transition-all bg-purple-600 text-white shadow-sm';
+                } else {
+                    btn.className = 'px-4 py-1.5 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white';
+                }
+            });
+            loadContent();
+        }
+
+        async function submitEntry() {
+            const title = document.getElementById('entry-title').value;
+            const desc = document.getElementById('entry-desc').value;
+            const urlInput = document.getElementById('entry-url').value;
+            const fileInput = document.getElementById('entry-file');
+            const category = document.getElementById('entry-category').value;
+
+            if (!title) return alert('Title is required');
+
+            let mediaData = urlInput;
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                if (file.size > 15 * 1024 * 1024) return alert('File is too large (max 15MB)');
+                mediaData = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            if (!mediaData && !editingId && category !== 'publications') return alert('Please provide an image/video');
+
+            try {
+                const endpoint = `/api/${category}${editingId ? '/' + editingId : ''}`;
+                const method = editingId ? 'PUT' : 'POST';
+                const payload = { title, description: desc, image: mediaData };
+
+                if (category === 'projects') {
+                    payload.link = document.getElementById('entry-link').value;
+                    payload.type = document.getElementById('entry-type').value;
+                } else if (category === 'publications') {
+                    payload.authors = document.getElementById('entry-authors').value;
+                    payload.conference = document.getElementById('entry-conference').value;
+                    payload.year = document.getElementById('entry-year').value;
+                    payload.link = document.getElementById('entry-pub-link').value;
+                }
+
+                const response = await fetch(endpoint, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    alert(editingId ? 'Updated successfully!' : 'Published successfully!');
+                    cancelEdit();
+                    loadContent();
+                } else {
+                    alert('Error: ' + response.statusText);
+                }
+            } catch (err) {
+                alert('Submission failed');
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('entry-title').value = '';
+            document.getElementById('entry-desc').value = '';
+            document.getElementById('entry-url').value = '';
+            document.getElementById('entry-file').value = '';
+            document.getElementById('entry-link').value = '';
+            document.getElementById('entry-type').value = '';
+            document.getElementById('entry-authors').value = '';
+            document.getElementById('entry-conference').value = '';
+            document.getElementById('entry-year').value = '';
+            document.getElementById('entry-pub-link').value = '';
+            document.getElementById('file-label').textContent = 'Choose file...';
+        }
+
+        function startEdit(item) {
+            editingId = item._id;
+            document.getElementById('entry-title').value = item.title || '';
+            document.getElementById('entry-desc').value = item.description || '';
+            document.getElementById('entry-url').value = (item.image && item.image.startsWith('http')) ? item.image : '';
+            document.getElementById('entry-link').value = item.link || '';
+            document.getElementById('entry-type').value = item.type || '';
+            document.getElementById('entry-authors').value = item.authors || '';
+            document.getElementById('entry-conference').value = item.conference || '';
+            document.getElementById('entry-year').value = item.year || '';
+            document.getElementById('entry-pub-link').value = item.link || '';
+            document.getElementById('entry-category').value = currentTab;
+            toggleProjectFields(currentTab);
+
+            const btn = document.querySelector('button[onclick="submitEntry()"]');
+            btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i> Update Entry';
+            btn.classList.replace('from-purple-600', 'from-blue-600');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function cancelEdit() {
+            editingId = null;
+            resetForm();
+            const btn = document.querySelector('button[onclick="submitEntry()"]');
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i> Publish to Portfolio';
+            btn.classList.replace('from-blue-600', 'from-purple-600');
+        }
+
+        async function loadContent() {
+            const list = document.getElementById('content-list');
+            list.innerHTML = '<div class="col-span-full text-center py-20 text-slate-500"><i class="fa-solid fa-circle-notch fa-spin text-2xl mb-4"></i><p>Syncing with database...</p></div>';
+
+            try {
+                const endpoint = `/api/${currentTab}`;
+                const response = await fetch(endpoint);
+                const items = await response.json();
+
+                if (items.length === 0) {
+                    list.innerHTML = '<div class="col-span-full text-center py-20 text-slate-500"><p>No items found in this category.</p></div>';
+                    return;
+                }
+
+                list.innerHTML = items.map(item => {
+                    const imgUrl = item.image || '';
+                    const isVideo = /\.(mp4|webm|ogg|mov)$/i.test(imgUrl) || imgUrl.startsWith('data:video/');
+                    const media = imgUrl 
+                        ? (isVideo ? `<video src="${imgUrl}" class="w-full h-full object-cover"></video>` : `<img src="${imgUrl}" class="w-full h-full object-cover">`)
+                        : `<div class="w-full h-full bg-slate-800 flex items-center justify-center text-slate-500"><i class="fa-solid fa-file-lines text-4xl"></i></div>`;
+
+                    return `
+                        <div class="bg-slate-800/50 border border-white/5 rounded-2xl overflow-hidden group">
+                            <div class="relative h-40 overflow-hidden">
+                                ${media}
+                                <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-4">
+                                    <button onclick='startEdit(${JSON.stringify(item).replace(/'/g, "&#39;")})' class="flex-grow bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white py-2 rounded-lg transition-all text-xs font-bold uppercase tracking-wider">Edit</button>
+                                    <button onclick="deleteItem('${item._id}')" class="flex-grow bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white py-2 rounded-lg transition-all text-xs font-bold uppercase tracking-wider">Delete</button>
+                                </div>
+                            </div>
+                            <div class="p-4">
+                                <h3 class="font-bold text-sm mb-1 truncate">${item.title}</h3>
+                                <p class="text-xs text-slate-400 line-clamp-2">${item.description || 'No description'}</p>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (err) {
+                list.innerHTML = '<p class="text-red-400 text-center col-span-full">Error loading content</p>';
+            }
+        }
+
+        async function deleteItem(id) {
+            if (!confirm('Are you sure? This cannot be undone.')) return;
+            try {
+                const endpoint = `/api/${currentTab}`;
+                const response = await fetch(`${endpoint}/${id}`, { method: 'DELETE' });
+                if (response.ok) loadContent();
+            } catch (err) {
+                alert('Delete failed');
+            }
+        }
+    </script>
+</body>
+
+</html>
