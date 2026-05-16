@@ -1300,10 +1300,10 @@
             try {
                 console.log('Loading content from APIs...');
                 const [eventsRes, certsRes, projectsRes, pubsRes] = await Promise.all([
-                    fetch('https://portfolio-1-6usy.onrender.com/api/events'),
-                    fetch('https://portfolio-1-6usy.onrender.com/api/certificates'),
-                    fetch('https://portfolio-1-6usy.onrender.com/api/projects'),
-                    fetch('https://portfolio-1-6usy.onrender.com/api/publications')
+                    fetch('https://portfolio-2-afjx.onrender.com/api/events'),
+                    fetch('https://portfolio-2-afjx.onrender.com/api/certificates'),
+                    fetch('https://portfolio-2-afjx.onrender.com/api/projects'),
+                    fetch('https://portfolio-2-afjx.onrender.com/api/publications')
                 ]);
 
                 if (!eventsRes.ok) throw new Error(`Events API error: ${eventsRes.status}`);
