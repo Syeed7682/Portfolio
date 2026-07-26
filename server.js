@@ -217,6 +217,112 @@ app.put('/api/projects/:id', async (req, res) => {
     }
 });
 
+// Messages API
+app.get('/api/messages', async (req, res) => {
+    try {
+        if (!messagesCollection) return res.status(500).json({ error: "DB not connected" });
+        const msgs = await messagesCollection.find().sort({ _id: -1 }).toArray();
+        res.json(msgs);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/messages', async (req, res) => {
+    try {
+        if (!messagesCollection) return res.status(500).json({ error: "DB not connected" });
+        const { name, email, subject, message } = req.body;
+        const result = await messagesCollection.insertOne({
+            name,
+            email,
+            subject,
+            message,
+            createdAt: new Date().toISOString()
+        });
+
+        // Forward to FormSubmit in the background
+        fetch("https://formsubmit.co/ajax/kmsyeedasif@gmail.com", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify({
+                name,
+                email,
+                subject,
+                message,
+                _captcha: "false"
+            })
+        }).catch(err => console.error("Error forwarding email to FormSubmit:", err));
+
+        res.status(201).json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.delete('/api/messages/:id', async (req, res) => {
+    try {
+        if (!messagesCollection) return res.status(500).json({ error: "DB not connected" });
+        const result = await messagesCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ message: 'Error' });
+    }
+});
+
+// CV API
+app.post('/api/cv', async (req, res) => {
+    try {
+        if (!cvCollection) return res.status(500).json({ error: "DB not connected" });
+        const { data, filename } = req.body;
+        await cvCollection.updateOne(
+            {},
+            { $set: { data, filename, updatedAt: new Date().toISOString() } },
+            { upsert: true }
+        );
+        res.json({ message: "CV uploaded successfully!" });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/cv/metadata', async (req, res) => {
+    try {
+        if (!cvCollection) return res.status(500).json({ error: "DB not connected" });
+        const cvDoc = await cvCollection.findOne({}, { projection: { data: 0 } });
+        res.json(cvDoc || { filename: null });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/cv/download', async (req, res) => {
+    try {
+        if (!cvCollection) return res.status(500).json({ error: "DB not connected" });
+        const cvDoc = await cvCollection.findOne({});
+        if (!cvDoc || !cvDoc.data) {
+            return res.status(404).send("CV not uploaded yet.");
+        }
+
+        const matches = cvDoc.data.match(/^data:(.+);base64,(.+)$/);
+        if (!matches) {
+            return res.status(500).send("Invalid CV data format.");
+        }
+
+        const contentType = matches[1];
+        const base64Data = matches[2];
+        const buffer = Buffer.from(base64Data, 'base64');
+
+        res.setHeader('Content-Type', contentType);
+        res.setHeader('Content-Disposition', `inline; filename="${cvDoc.filename || 'CV.pdf'}"`);
+        res.send(buffer);
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
 // Serve static files from the current directory
 app.use(express.static(path.join(__dirname)));
 
@@ -228,6 +334,8 @@ let eventsCollection;
 let certCollection;
 let projectsCollection;
 let publicationsCollection;
+let messagesCollection;
+let cvCollection;
 
 async function connectDB() {
     try {
@@ -238,6 +346,8 @@ async function connectDB() {
         certCollection = db.collection("certificates");
         projectsCollection = db.collection("projects");
         publicationsCollection = db.collection("publications");
+        messagesCollection = db.collection("messages");
+        cvCollection = db.collection("cv");
 
         // Migration: Add existing projects if empty
         const projectCount = await projectsCollection.countDocuments();

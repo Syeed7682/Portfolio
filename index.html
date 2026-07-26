@@ -382,6 +382,12 @@
                         <i class="fas fa-cog text-lg"></i>
                     </a>
 
+                    <!-- Hire Me Button (shown when CV is uploaded) -->
+                    <a id="hire-me-nav" href="#" target="_blank" style="display:none;"
+                        class="ml-2 px-5 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-bold rounded-full hover:from-purple-500 hover:to-pink-500 transition-all shadow-lg transform hover:scale-105 flex items-center gap-2">
+                        <i class="fa-solid fa-file-arrow-down"></i> Hire Me
+                    </a>
+
                     <!-- Theme Toggle Button -->
                     <button id="theme-toggle"
                         class="p-2 ml-4 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/10 transition-colors focus:outline-none">
@@ -422,6 +428,11 @@
                     class="block text-gray-700 dark:text-gray-300 hover:text-brand-light transition-colors">Contact</a>
                 <a href="https://portfolio-2-afjx.onrender.com/admin"
                     class="block text-gray-700 dark:text-gray-300 hover:text-brand-light transition-colors">Admin Dashboard</a>
+                <!-- Hire Me Mobile (shown when CV is uploaded) -->
+                <a id="hire-me-mobile" href="#" target="_blank" style="display:none;"
+                    class="block text-center px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-bold rounded-xl hover:from-purple-500 hover:to-pink-500 transition-all shadow-md">
+                    <i class="fa-solid fa-file-arrow-down mr-1"></i> Hire Me (CV)
+                </a>
             </div>
         </div>
     </nav>
@@ -453,10 +464,15 @@
                         solutions that solve real-world problems.
                     </p>
 
-                    <div class="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
+                    <div id="hero-cta-buttons" class="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
                         <a href="#contact"
                             class="w-full sm:w-auto px-8 py-3.5 bg-gray-900 text-white dark:bg-white dark:text-black font-semibold rounded-lg hover:bg-brand-light dark:hover:bg-gray-200 transition-all transform hover:scale-105 shadow-md">
                             Get In Touch
+                        </a>
+                        <!-- Hire Me Hero Button (shown when CV is uploaded) -->
+                        <a id="hire-me-hero" href="#" target="_blank" style="display:none;"
+                            class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg hover:from-purple-500 hover:to-pink-500 transition-all transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-file-arrow-down"></i> Hire Me (CV)
                         </a>
                         <a href="#portfolio"
                             class="w-full sm:w-auto px-8 py-3.5 glass-card bg-white/60 dark:bg-white/5 text-gray-900 dark:text-white font-semibold rounded-lg hover:bg-white/90 dark:hover:bg-white/10 transition-all border border-gray-300 dark:border-white/20 shadow-sm">
@@ -1557,13 +1573,20 @@
                 btn.disabled = true;
 
                 const formData = new FormData(contactForm);
-                formData.append('_captcha', 'false');
+                const name = formData.get('name');
+                const email = formData.get('email');
+                const subject = formData.get('subject');
+                const message = formData.get('message');
 
                 try {
-                    const response = await fetch("https://formsubmit.co/ajax/kmsyeedasif@gmail.com", {
+                    const apiHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+                        ? '' 
+                        : 'https://portfolio-2-afjx.onrender.com';
+
+                    const response = await fetch(`${apiHost}/api/messages`, {
                         method: "POST",
-                        headers: { 'Accept': 'application/json' },
-                        body: formData
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, email, subject, message })
                     });
                     const msgEl = document.getElementById('form-message');
                     if (response.ok) {
@@ -1589,11 +1612,36 @@
             });
         }
 
+        async function initHireMeButton() {
+            try {
+                const apiHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                    ? ''
+                    : 'https://portfolio-2-afjx.onrender.com';
 
+                const response = await fetch(`${apiHost}/api/cv/metadata`);
+                const data = await response.json();
+
+                if (data && data.filename) {
+                    const downloadUrl = `${apiHost}/api/cv/download`;
+
+                    // Set the href and show all three pre-built Hire Me buttons
+                    const navBtn = document.getElementById('hire-me-nav');
+                    const mobileBtn = document.getElementById('hire-me-mobile');
+                    const heroBtn = document.getElementById('hire-me-hero');
+
+                    if (navBtn) { navBtn.href = downloadUrl; navBtn.style.display = 'flex'; }
+                    if (mobileBtn) { mobileBtn.href = downloadUrl; mobileBtn.style.display = 'block'; }
+                    if (heroBtn) { heroBtn.href = downloadUrl; heroBtn.style.display = 'flex'; }
+                }
+            } catch (err) {
+                console.error("Error checking CV status:", err);
+            }
+        }
 
         // Initialize loading
         document.addEventListener('DOMContentLoaded', () => {
             loadContent();
+            initHireMeButton();
         });
 
     </script>
