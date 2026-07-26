@@ -4,6 +4,7 @@ const { MongoClient, ObjectId } = require('mongodb');
 const cors = require('cors');
 const path = require('path');
 const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
 const app = express();
 app.use(cors());
@@ -248,11 +249,41 @@ app.post('/api/messages', async (req, res) => {
         // Send email in the background (non-blocking)
         const gmailUser = process.env.GMAIL_USER || 'kmsyeedasif@gmail.com';
         const gmailPass = process.env.GMAIL_PASS;
+        const resendApiKey = process.env.RESEND_API_KEY;
 
+        console.log(`[Email] RESEND_API_KEY set: ${!!resendApiKey}`);
         console.log(`[Email] GMAIL_USER: ${gmailUser}`);
         console.log(`[Email] GMAIL_PASS set: ${!!gmailPass}`);
 
-        if (gmailPass) {
+        const subjectText = `New Portfolio Message: ${subject}`;
+        const htmlBody = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+                <h2 style="color: #7c3aed; border-bottom: 2px solid #7c3aed; padding-bottom: 10px;">📩 New Portfolio Message</h2>
+                <p><strong>From:</strong> ${name}</p>
+                <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
+                <p><strong>Subject:</strong> ${subject}</p>
+                <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;">
+                <h3 style="color: #374151;">Message:</h3>
+                <p style="background: #f9f9f9; padding: 15px; border-radius: 6px; white-space: pre-wrap;">${message}</p>
+                <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;">
+                <p style="color: #9ca3af; font-size: 12px;">Sent from your portfolio at https://portfolio-2-afjx.onrender.com</p>
+            </div>
+        `;
+
+        if (resendApiKey) {
+            // Send via Resend
+            const resend = new Resend(resendApiKey);
+            resend.emails.send({
+                from: 'Portfolio <onboarding@resend.dev>',
+                to: 'kmsyeedasif@gmail.com',
+                replyTo: email,
+                subject: subjectText,
+                html: htmlBody
+            })
+            .then(data => console.log('[Email via Resend] Sent successfully:', data.id || data))
+            .catch(err => console.error('[Email via Resend] Failed:', err.message));
+        } else if (gmailPass) {
+            // Send via Gmail SMTP
             const transporter = nodemailer.createTransport({
                 host: 'smtp.gmail.com',
                 port: 465,
@@ -267,27 +298,15 @@ app.post('/api/messages', async (req, res) => {
                 from: `"Portfolio Contact" <${gmailUser}>`,
                 to: 'kmsyeedasif@gmail.com',
                 replyTo: email,
-                subject: `New Portfolio Message: ${subject}`,
-                html: `
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
-                        <h2 style="color: #7c3aed; border-bottom: 2px solid #7c3aed; padding-bottom: 10px;">📩 New Portfolio Message</h2>
-                        <p><strong>From:</strong> ${name}</p>
-                        <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
-                        <p><strong>Subject:</strong> ${subject}</p>
-                        <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;">
-                        <h3 style="color: #374151;">Message:</h3>
-                        <p style="background: #f9f9f9; padding: 15px; border-radius: 6px; white-space: pre-wrap;">${message}</p>
-                        <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;">
-                        <p style="color: #9ca3af; font-size: 12px;">Sent from your portfolio at https://portfolio-2-afjx.onrender.com</p>
-                    </div>
-                `
+                subject: subjectText,
+                html: htmlBody
             };
 
             transporter.sendMail(mailOptions)
-                .then(info => console.log('[Email] Sent successfully:', info.messageId))
-                .catch(err => console.error('[Email] Failed:', err.message));
+                .then(info => console.log('[Email via Gmail] Sent successfully:', info.messageId))
+                .catch(err => console.error('[Email via Gmail] Failed:', err.message));
         } else {
-            console.warn('[Email] GMAIL_PASS not set — email forwarding skipped.');
+            console.warn('[Email] Neither RESEND_API_KEY nor GMAIL_PASS is set — email forwarding skipped.');
         }
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -298,31 +317,43 @@ app.post('/api/messages', async (req, res) => {
 app.get('/api/test-email', async (req, res) => {
     const gmailUser = process.env.GMAIL_USER || 'kmsyeedasif@gmail.com';
     const gmailPass = process.env.GMAIL_PASS;
+    const resendApiKey = process.env.RESEND_API_KEY;
 
-    if (!gmailPass) {
-        return res.json({ ok: false, error: 'GMAIL_PASS environment variable is not set.' });
+    if (!resendApiKey && !gmailPass) {
+        return res.json({ ok: false, error: 'Neither RESEND_API_KEY nor GMAIL_PASS environment variable is set.' });
     }
 
     try {
-        const transporter = nodemailer.createTransport({
-            host: 'smtp.gmail.com',
-            port: 465,
-            secure: true,
-            auth: {
-                user: gmailUser,
-                pass: gmailPass.replace(/\s+/g, '')
-            }
-        });
+        if (resendApiKey) {
+            const resend = new Resend(resendApiKey);
+            const response = await resend.emails.send({
+                from: 'Portfolio Test <onboarding@resend.dev>',
+                to: 'kmsyeedasif@gmail.com',
+                subject: 'Test Email from Portfolio Server (via Resend)',
+                text: 'This is a test email to confirm your Resend setup is working correctly!'
+            });
+            return res.json({ ok: true, provider: 'Resend', data: response });
+        } else {
+            const transporter = nodemailer.createTransport({
+                host: 'smtp.gmail.com',
+                port: 465,
+                secure: true,
+                auth: {
+                    user: gmailUser,
+                    pass: gmailPass.replace(/\s+/g, '')
+                }
+            });
 
-        await transporter.verify();
-        const info = await transporter.sendMail({
-            from: `"Portfolio Test" <${gmailUser}>`,
-            to: 'kmsyeedasif@gmail.com',
-            subject: 'Test Email from Portfolio Server',
-            text: 'This is a test email to confirm your Nodemailer setup is working correctly!'
-        });
+            await transporter.verify();
+            const info = await transporter.sendMail({
+                from: `"Portfolio Test" <${gmailUser}>`,
+                to: 'kmsyeedasif@gmail.com',
+                subject: 'Test Email from Portfolio Server (via Gmail)',
+                text: 'This is a test email to confirm your Nodemailer setup is working correctly!'
+            });
 
-        res.json({ ok: true, messageId: info.messageId, response: info.response });
+            return res.json({ ok: true, provider: 'Gmail SMTP', messageId: info.messageId, response: info.response });
+        }
     } catch (err) {
         res.json({ ok: false, error: err.message, code: err.code });
     }
