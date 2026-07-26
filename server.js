@@ -11,6 +11,53 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
+let portfolioDataCache = null;
+const clearCache = () => {
+    console.log('[Cache] Clearing in-memory portfolio cache');
+    portfolioDataCache = null;
+};
+
+// Combined Portfolio Data API (with caching)
+app.get('/api/portfolio-data', async (req, res) => {
+    try {
+        if (portfolioDataCache) {
+            console.log('[Cache] Serving portfolio data from in-memory cache');
+            return res.json(portfolioDataCache);
+        }
+        
+        console.log('[Cache] Cache miss. Querying MongoDB...');
+        if (!eventsCollection || !certCollection || !projectsCollection || !publicationsCollection) {
+            return res.status(500).json({ error: "DB not connected" });
+        }
+
+        const [events, certs, projects, publications] = await Promise.all([
+            eventsCollection.find().sort({ _id: -1 }).toArray(),
+            certCollection.find().sort({ _id: -1 }).toArray(),
+            projectsCollection.find().sort({ _id: -1 }).toArray(),
+            publicationsCollection.find().sort({ _id: -1 }).toArray()
+        ]);
+
+        portfolioDataCache = { events, certs, projects, publications };
+        res.json(portfolioDataCache);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Auto-clear cache middleware for portfolio mutations
+app.use((req, res, next) => {
+    if (['POST', 'PUT', 'DELETE'].includes(req.method)) {
+        const path = req.path;
+        if (path.startsWith('/api/publications') || 
+            path.startsWith('/api/events') || 
+            path.startsWith('/api/certificates') || 
+            path.startsWith('/api/projects')) {
+            clearCache();
+        }
+    }
+    next();
+});
+
 // Publications API
 app.get('/api/publications', async (req, res) => {
     try {

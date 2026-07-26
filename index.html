@@ -1316,28 +1316,23 @@
 
         async function loadContent() {
             try {
-                console.log('Loading content from APIs...');
-                const [eventsRes, certsRes, projectsRes, pubsRes] = await Promise.all([
-                    fetch('https://portfolio-2-afjx.onrender.com/api/events'),
-                    fetch('https://portfolio-2-afjx.onrender.com/api/certificates'),
-                    fetch('https://portfolio-2-afjx.onrender.com/api/projects'),
-                    fetch('https://portfolio-2-afjx.onrender.com/api/publications')
-                ]);
+                console.log('Loading content from optimized API...');
+                const apiHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+                    ? '' 
+                    : 'https://portfolio-2-afjx.onrender.com';
 
-                if (!eventsRes.ok) throw new Error(`Events API error: ${eventsRes.status}`);
-                if (!certsRes.ok) throw new Error(`Certificates API error: ${certsRes.status}`);
-                if (!projectsRes.ok) throw new Error(`Projects API error: ${projectsRes.status}`);
-                if (!pubsRes.ok) throw new Error(`Publications API error: ${pubsRes.status}`);
+                const response = await fetch(`${apiHost}/api/portfolio-data`);
+                if (!response.ok) throw new Error(`Portfolio Data API error: ${response.status}`);
+                
+                const data = await response.json();
+                const { events = [], certs = [], projects = [], publications = [] } = data;
 
-                const events = await eventsRes.json();
-                const certs = await certsRes.json();
-                allProjects = await projectsRes.json();
-                const publications = await pubsRes.json();
+                allProjects = projects;
 
-                console.log('Events:', events);
-                console.log('Certificates:', certs);
-                console.log('Projects:', allProjects);
-                console.log('Publications:', publications);
+                console.log('Loaded events:', events.length);
+                console.log('Loaded certificates:', certs.length);
+                console.log('Loaded projects:', allProjects.length);
+                console.log('Loaded publications:', publications.length);
 
                 // Merge and sort events/achievements
                 const merged = [...events, ...certs].sort((a, b) => b._id.localeCompare(a._id));
