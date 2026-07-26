@@ -243,32 +243,52 @@ app.post('/api/messages', async (req, res) => {
         });
 
         // Forward email using nodemailer
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.GMAIL_USER || 'kmsyeedasif@gmail.com',
-                pass: process.env.GMAIL_PASS // Needs to be set in environment variables (App Password)
+        const gmailUser = process.env.GMAIL_USER || 'kmsyeedasif@gmail.com';
+        const gmailPass = process.env.GMAIL_PASS;
+
+        console.log(`[Email] GMAIL_USER: ${gmailUser}`);
+        console.log(`[Email] GMAIL_PASS set: ${!!gmailPass}`);
+
+        if (gmailPass) {
+            try {
+                const transporter = nodemailer.createTransport({
+                    host: 'smtp.gmail.com',
+                    port: 465,
+                    secure: true,
+                    auth: {
+                        user: gmailUser,
+                        pass: gmailPass.replace(/\s+/g, '') // strip spaces from App Password
+                    }
+                });
+
+                const mailOptions = {
+                    from: `"Portfolio Contact" <${gmailUser}>`,
+                    to: 'kmsyeedasif@gmail.com',
+                    replyTo: email,
+                    subject: `New Portfolio Message: ${subject}`,
+                    html: `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+                            <h2 style="color: #7c3aed; border-bottom: 2px solid #7c3aed; padding-bottom: 10px;">📩 New Portfolio Message</h2>
+                            <p><strong>From:</strong> ${name}</p>
+                            <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
+                            <p><strong>Subject:</strong> ${subject}</p>
+                            <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;">
+                            <h3 style="color: #374151;">Message:</h3>
+                            <p style="background: #f9f9f9; padding: 15px; border-radius: 6px; white-space: pre-wrap;">${message}</p>
+                            <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;">
+                            <p style="color: #9ca3af; font-size: 12px;">This message was sent from your portfolio contact form at https://portfolio-2-afjx.onrender.com</p>
+                        </div>
+                    `
+                };
+
+                const info = await transporter.sendMail(mailOptions);
+                console.log('[Email] Sent successfully:', info.messageId);
+            } catch (emailErr) {
+                console.error('[Email] Failed to send:', emailErr.message);
+                console.error('[Email] Full error:', emailErr);
             }
-        });
-
-        if (process.env.GMAIL_PASS) {
-            const mailOptions = {
-                from: process.env.GMAIL_USER || 'kmsyeedasif@gmail.com',
-                to: 'kmsyeedasif@gmail.com', // Sending to yourself
-                replyTo: email,
-                subject: `New Portfolio Message: ${subject}`,
-                text: `You have received a new message from your portfolio contact form.\n\nName: ${name}\nEmail: ${email}\nSubject: ${subject}\n\nMessage:\n${message}`
-            };
-
-            transporter.sendMail(mailOptions, (error, info) => {
-                if (error) {
-                    console.error("Error sending email via Nodemailer:", error);
-                } else {
-                    console.log("Email forwarded successfully:", info.response);
-                }
-            });
         } else {
-            console.log("GMAIL_PASS not set in environment variables. Email forwarding skipped.");
+            console.warn('[Email] GMAIL_PASS not set — email forwarding skipped.');
         }
 
         res.status(201).json(result);
@@ -276,6 +296,41 @@ app.post('/api/messages', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
+// Test email endpoint (for debugging)
+app.get('/api/test-email', async (req, res) => {
+    const gmailUser = process.env.GMAIL_USER || 'kmsyeedasif@gmail.com';
+    const gmailPass = process.env.GMAIL_PASS;
+
+    if (!gmailPass) {
+        return res.json({ ok: false, error: 'GMAIL_PASS environment variable is not set.' });
+    }
+
+    try {
+        const transporter = nodemailer.createTransport({
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true,
+            auth: {
+                user: gmailUser,
+                pass: gmailPass.replace(/\s+/g, '')
+            }
+        });
+
+        await transporter.verify();
+        const info = await transporter.sendMail({
+            from: `"Portfolio Test" <${gmailUser}>`,
+            to: 'kmsyeedasif@gmail.com',
+            subject: 'Test Email from Portfolio Server',
+            text: 'This is a test email to confirm your Nodemailer setup is working correctly!'
+        });
+
+        res.json({ ok: true, messageId: info.messageId, response: info.response });
+    } catch (err) {
+        res.json({ ok: false, error: err.message, code: err.code });
+    }
+});
+
 
 app.delete('/api/messages/:id', async (req, res) => {
     try {
