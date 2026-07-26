@@ -1625,15 +1625,49 @@
 
                 if (data && data.filename) {
                     const downloadUrl = `${apiHost}/api/cv/download`;
+                    const previewUrl = `${downloadUrl}#toolbar=0&navpanes=0&scrollbar=0`;
 
-                    // Set the href and show all three pre-built Hire Me buttons
                     const navBtn = document.getElementById('hire-me-nav');
                     const mobileBtn = document.getElementById('hire-me-mobile');
                     const heroBtn = document.getElementById('hire-me-hero');
 
-                    if (navBtn) { navBtn.href = downloadUrl; navBtn.style.display = 'flex'; }
-                    if (mobileBtn) { mobileBtn.href = downloadUrl; mobileBtn.style.display = 'block'; }
-                    if (heroBtn) { heroBtn.href = downloadUrl; heroBtn.style.display = 'flex'; }
+                    const popup = document.getElementById('cv-preview-popup');
+                    const popupIframe = document.getElementById('cv-preview-iframe');
+
+                    const buttons = [navBtn, mobileBtn, heroBtn].filter(Boolean);
+
+                    buttons.forEach(btn => {
+                        btn.href = downloadUrl;
+                        btn.style.display = btn === mobileBtn ? 'block' : 'flex';
+
+                        btn.addEventListener('mouseenter', (e) => {
+                            if (window.innerWidth < 768) return; // Don't show popup on mobile
+                            popupIframe.src = previewUrl;
+                            popup.classList.remove('hidden');
+                        });
+
+                        btn.addEventListener('mousemove', (e) => {
+                            if (window.innerWidth < 768) return;
+                            // Position the popup slightly offset from the cursor
+                            const x = e.clientX + 20;
+                            let y = e.clientY + 20;
+                            // Keep it within viewport
+                            if (y + 400 > window.innerHeight) {
+                                y = e.clientY - 420;
+                            }
+                            if (x + 300 > window.innerWidth) {
+                                popup.style.left = (e.clientX - 320) + 'px';
+                            } else {
+                                popup.style.left = x + 'px';
+                            }
+                            popup.style.top = y + 'px';
+                        });
+
+                        btn.addEventListener('mouseleave', () => {
+                            popup.classList.add('hidden');
+                            popupIframe.src = '';
+                        });
+                    });
                 }
             } catch (err) {
                 console.error("Error checking CV status:", err);
@@ -1647,6 +1681,14 @@
         });
 
     </script>
+    
+    <!-- CV Preview Popup (Hidden by default) -->
+    <div id="cv-preview-popup" class="hidden fixed z-[100] shadow-2xl rounded-xl overflow-hidden border border-gray-300 dark:border-white/20 bg-white dark:bg-slate-900 pointer-events-none transition-opacity duration-200" style="width: 320px; height: 400px; opacity: 1;">
+        <div class="bg-gray-100 dark:bg-slate-800 p-2 text-center text-xs font-bold text-gray-600 dark:text-gray-300 border-b border-gray-300 dark:border-white/10">
+            <i class="fa-solid fa-file-pdf mr-1 text-red-500"></i> CV Preview
+        </div>
+        <iframe id="cv-preview-iframe" class="w-full h-full" src="" frameborder="0"></iframe>
+    </div>
 </body>
 
 </html>
