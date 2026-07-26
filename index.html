@@ -427,7 +427,8 @@
                 <a href="#contact"
                     class="block text-gray-700 dark:text-gray-300 hover:text-brand-light transition-colors">Contact</a>
                 <a href="https://portfolio-2-afjx.onrender.com/admin"
-                    class="block text-gray-700 dark:text-gray-300 hover:text-brand-light transition-colors">Admin Dashboard</a>
+                    class="block text-gray-700 dark:text-gray-300 hover:text-brand-light transition-colors">Admin
+                    Dashboard</a>
                 <!-- Hire Me Mobile (shown when CV is uploaded) -->
                 <a id="hire-me-mobile" href="#" target="_blank" style="display:none;"
                     class="block text-center px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-bold rounded-xl hover:from-purple-500 hover:to-pink-500 transition-all shadow-md">
@@ -464,7 +465,8 @@
                         solutions that solve real-world problems.
                     </p>
 
-                    <div id="hero-cta-buttons" class="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
+                    <div id="hero-cta-buttons"
+                        class="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
                         <a href="#contact"
                             class="w-full sm:w-auto px-8 py-3.5 bg-gray-900 text-white dark:bg-white dark:text-black font-semibold rounded-lg hover:bg-brand-light dark:hover:bg-gray-200 transition-all transform hover:scale-105 shadow-md">
                             Get In Touch
@@ -1579,8 +1581,8 @@
                 const message = formData.get('message');
 
                 try {
-                    const apiHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-                        ? '' 
+                    const apiHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                        ? ''
                         : 'https://portfolio-2-afjx.onrender.com';
 
                     const response = await fetch(`${apiHost}/api/messages`, {

@@ -2,6 +2,7 @@ const express = require('express');
 const { MongoClient, ObjectId } = require('mongodb');
 const cors = require('cors');
 const path = require('path');
+const nodemailer = require('nodemailer');
 
 const app = express();
 app.use(cors());
@@ -240,21 +241,34 @@ app.post('/api/messages', async (req, res) => {
             createdAt: new Date().toISOString()
         });
 
-        // Forward to FormSubmit in the background
-        fetch("https://formsubmit.co/ajax/kmsyeedasif@gmail.com", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            },
-            body: JSON.stringify({
-                name,
-                email,
-                subject,
-                message,
-                _captcha: "false"
-            })
-        }).catch(err => console.error("Error forwarding email to FormSubmit:", err));
+        // Forward email using nodemailer
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.GMAIL_USER || 'kmsyeedasif@gmail.com',
+                pass: process.env.GMAIL_PASS // Needs to be set in environment variables (App Password)
+            }
+        });
+
+        if (process.env.GMAIL_PASS) {
+            const mailOptions = {
+                from: process.env.GMAIL_USER || 'kmsyeedasif@gmail.com',
+                to: 'kmsyeedasif@gmail.com', // Sending to yourself
+                replyTo: email,
+                subject: `New Portfolio Message: ${subject}`,
+                text: `You have received a new message from your portfolio contact form.\n\nName: ${name}\nEmail: ${email}\nSubject: ${subject}\n\nMessage:\n${message}`
+            };
+
+            transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    console.error("Error sending email via Nodemailer:", error);
+                } else {
+                    console.log("Email forwarded successfully:", info.response);
+                }
+            });
+        } else {
+            console.log("GMAIL_PASS not set in environment variables. Email forwarding skipped.");
+        }
 
         res.status(201).json(result);
     } catch (error) {
