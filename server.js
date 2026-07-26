@@ -242,7 +242,10 @@ app.post('/api/messages', async (req, res) => {
             createdAt: new Date().toISOString()
         });
 
-        // Forward email using nodemailer
+        // Respond immediately so the form doesn't hang
+        res.status(201).json(result);
+
+        // Send email in the background (non-blocking)
         const gmailUser = process.env.GMAIL_USER || 'kmsyeedasif@gmail.com';
         const gmailPass = process.env.GMAIL_PASS;
 
@@ -250,48 +253,42 @@ app.post('/api/messages', async (req, res) => {
         console.log(`[Email] GMAIL_PASS set: ${!!gmailPass}`);
 
         if (gmailPass) {
-            try {
-                const transporter = nodemailer.createTransport({
-                    host: 'smtp.gmail.com',
-                    port: 465,
-                    secure: true,
-                    auth: {
-                        user: gmailUser,
-                        pass: gmailPass.replace(/\s+/g, '') // strip spaces from App Password
-                    }
-                });
+            const transporter = nodemailer.createTransport({
+                host: 'smtp.gmail.com',
+                port: 465,
+                secure: true,
+                auth: {
+                    user: gmailUser,
+                    pass: gmailPass.replace(/\s+/g, '')
+                }
+            });
 
-                const mailOptions = {
-                    from: `"Portfolio Contact" <${gmailUser}>`,
-                    to: 'kmsyeedasif@gmail.com',
-                    replyTo: email,
-                    subject: `New Portfolio Message: ${subject}`,
-                    html: `
-                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
-                            <h2 style="color: #7c3aed; border-bottom: 2px solid #7c3aed; padding-bottom: 10px;">📩 New Portfolio Message</h2>
-                            <p><strong>From:</strong> ${name}</p>
-                            <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
-                            <p><strong>Subject:</strong> ${subject}</p>
-                            <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;">
-                            <h3 style="color: #374151;">Message:</h3>
-                            <p style="background: #f9f9f9; padding: 15px; border-radius: 6px; white-space: pre-wrap;">${message}</p>
-                            <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;">
-                            <p style="color: #9ca3af; font-size: 12px;">This message was sent from your portfolio contact form at https://portfolio-2-afjx.onrender.com</p>
-                        </div>
-                    `
-                };
+            const mailOptions = {
+                from: `"Portfolio Contact" <${gmailUser}>`,
+                to: 'kmsyeedasif@gmail.com',
+                replyTo: email,
+                subject: `New Portfolio Message: ${subject}`,
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+                        <h2 style="color: #7c3aed; border-bottom: 2px solid #7c3aed; padding-bottom: 10px;">📩 New Portfolio Message</h2>
+                        <p><strong>From:</strong> ${name}</p>
+                        <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
+                        <p><strong>Subject:</strong> ${subject}</p>
+                        <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;">
+                        <h3 style="color: #374151;">Message:</h3>
+                        <p style="background: #f9f9f9; padding: 15px; border-radius: 6px; white-space: pre-wrap;">${message}</p>
+                        <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;">
+                        <p style="color: #9ca3af; font-size: 12px;">Sent from your portfolio at https://portfolio-2-afjx.onrender.com</p>
+                    </div>
+                `
+            };
 
-                const info = await transporter.sendMail(mailOptions);
-                console.log('[Email] Sent successfully:', info.messageId);
-            } catch (emailErr) {
-                console.error('[Email] Failed to send:', emailErr.message);
-                console.error('[Email] Full error:', emailErr);
-            }
+            transporter.sendMail(mailOptions)
+                .then(info => console.log('[Email] Sent successfully:', info.messageId))
+                .catch(err => console.error('[Email] Failed:', err.message));
         } else {
             console.warn('[Email] GMAIL_PASS not set — email forwarding skipped.');
         }
-
-        res.status(201).json(result);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
