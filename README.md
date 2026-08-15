@@ -2,7 +2,7 @@
 
 Welcome to the source code of my dynamic, full-stack personal portfolio! Designed to showcase projects, research publications, achievements, experience, and skills in an interactive, high-performance web experience.
 
-🌐 **Live Demo:** [https://syeed-asif.pages.dev/](https://syeed-asif.pages.dev/)  
+🌐 **Live Demo:** [[https://syeed-asif.pages.dev/](https://portfolio.syeed-asif.workers.dev/)
 ⚙️ **Backend API:** [https://portfolio-2-afjx.onrender.com](https://portfolio-2-afjx.onrender.com)
 
 ---
