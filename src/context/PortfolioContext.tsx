@@ -368,11 +368,11 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const saved = await res.json();
       const newEvent: EventAchievement = { ...event, _id: saved._id || saved.insertedId || 'ev-' + Date.now(), createdAt: new Date().toISOString() };
       setData(prev => ({ ...prev, events: [newEvent, ...prev.events] }));
-      showToast(`"${event.title}" saved!`, 'success');
+      showToast(`"${event.title}" published!`, 'success');
     } catch {
       const newEvent: EventAchievement = { ...event, _id: 'ev-' + Date.now(), createdAt: new Date().toISOString() };
       setData(prev => ({ ...prev, events: [newEvent, ...prev.events] }));
-      showToast(`Event saved locally.`, 'info');
+      showToast(`"${event.title}" saved locally.`, 'info');
     }
   };
 
@@ -381,16 +381,25 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       ...prev,
       events: prev.events.map(ev => (ev._id === id ? { ...ev, ...updates } : ev)),
     }));
-    const category = data.events.find(e => e._id === id)?.category;
+    const category = updates.category || data.events.find(e => e._id === id)?.category;
     const endpoint = category === 'certificates' ? `/api/certificates/${id}` : `/api/events/${id}`;
     try {
-      await fetch(`${API_BASE}${endpoint}`, {
+      const res = await fetch(`${API_BASE}${endpoint}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
       });
+      if (!res.ok) {
+        // If not found in primary endpoint, try the alternate endpoint
+        const altEndpoint = category === 'certificates' ? `/api/events/${id}` : `/api/certificates/${id}`;
+        await fetch(`${API_BASE}${altEndpoint}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updates),
+        });
+      }
     } catch (err) { console.warn('[API] event update failed:', err); }
-    showToast('Event updated', 'success');
+    showToast('Milestone updated successfully', 'success');
   };
 
   const deleteEvent = async (id: string) => {
@@ -398,9 +407,13 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setData(prev => ({ ...prev, events: prev.events.filter(ev => ev._id !== id) }));
     const endpoint = category === 'certificates' ? `/api/certificates/${id}` : `/api/events/${id}`;
     try {
-      await fetch(`${API_BASE}${endpoint}`, { method: 'DELETE' });
+      const res = await fetch(`${API_BASE}${endpoint}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const altEndpoint = category === 'certificates' ? `/api/events/${id}` : `/api/certificates/${id}`;
+        await fetch(`${API_BASE}${altEndpoint}`, { method: 'DELETE' });
+      }
     } catch (err) { console.warn('[API] event delete failed:', err); }
-    showToast('Event deleted', 'info');
+    showToast('Milestone deleted', 'info');
   };
 
   // ─── Experience CRUD (with MongoDB sync) ─────────────────────────────

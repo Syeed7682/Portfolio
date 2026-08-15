@@ -142,11 +142,15 @@ app.get('/api/events', async (req, res) => {
 app.post('/api/events', async (req, res) => {
     try {
         if (!eventsCollection) return res.status(500).json({ error: "DB not connected" });
-        const { title, description, image } = req.body;
+        const { title, description, image, category, date, organization, credentialUrl } = req.body;
         const result = await eventsCollection.insertOne({
             title,
             description,
-            image,
+            image: image || '',
+            category: category || 'events',
+            date: date || '',
+            organization: organization || '',
+            credentialUrl: credentialUrl || '',
             createdAt: new Date().toISOString()
         });
         res.status(201).json(result);
@@ -168,8 +172,16 @@ app.delete('/api/events/:id', async (req, res) => {
 app.put('/api/events/:id', async (req, res) => {
     try {
         if (!eventsCollection) return res.status(500).json({ error: "DB not connected" });
-        const { title, description, image } = req.body;
-        const updateData = { title, description, updatedAt: new Date().toISOString() };
+        const { title, description, image, category, date, organization, credentialUrl } = req.body;
+        const updateData = { 
+            title, 
+            description, 
+            category: category || 'events',
+            date: date || '',
+            organization: organization || '',
+            credentialUrl: credentialUrl || '',
+            updatedAt: new Date().toISOString() 
+        };
         if (image !== undefined && image !== null && image !== '') {
             updateData.image = image;
         }
@@ -197,11 +209,15 @@ app.get('/api/certificates', async (req, res) => {
 app.post('/api/certificates', async (req, res) => {
     try {
         if (!certCollection) return res.status(500).json({ error: "DB not connected" });
-        const { title, description, image } = req.body;
+        const { title, description, image, category, date, organization, credentialUrl } = req.body;
         const result = await certCollection.insertOne({
             title,
             description,
-            image,
+            image: image || '',
+            category: category || 'certificates',
+            date: date || '',
+            organization: organization || '',
+            credentialUrl: credentialUrl || '',
             createdAt: new Date().toISOString()
         });
         res.status(201).json(result);
@@ -223,8 +239,16 @@ app.delete('/api/certificates/:id', async (req, res) => {
 app.put('/api/certificates/:id', async (req, res) => {
     try {
         if (!certCollection) return res.status(500).json({ error: "DB not connected" });
-        const { title, description, image } = req.body;
-        const updateData = { title, description, updatedAt: new Date().toISOString() };
+        const { title, description, image, category, date, organization, credentialUrl } = req.body;
+        const updateData = { 
+            title, 
+            description, 
+            category: category || 'certificates',
+            date: date || '',
+            organization: organization || '',
+            credentialUrl: credentialUrl || '',
+            updatedAt: new Date().toISOString() 
+        };
         if (image !== undefined && image !== null && image !== '') {
             updateData.image = image;
         }

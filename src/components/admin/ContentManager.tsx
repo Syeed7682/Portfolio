@@ -244,7 +244,7 @@ export const ContentManager: React.FC = () => {
           }`}
         >
           <Trophy className="w-4 h-4" />
-          <span>Events & Awards ({data.events.length})</span>
+          <span>Events, Awards & Certs ({data.events.length})</span>
         </button>
 
         <button
