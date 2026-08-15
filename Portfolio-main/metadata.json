@@ -1,6 +1,0 @@
-{
-  "name": "Dynamic Portfolio & Interactive Admin Studio",
-  "description": "Interactive, high-performance portfolio for Kha. Mo. Syeed Asif with smooth scroll animations, project filtering, frosted glass hover popups, and a drag-and-drop real-time admin customizer.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
