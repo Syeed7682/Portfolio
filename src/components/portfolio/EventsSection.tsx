@@ -118,15 +118,15 @@ export const EventsSection: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-12 space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-600 dark:text-purple-300 border border-purple-500/20 uppercase tracking-wider">
-            <Trophy className="w-3 h-3 text-purple-400" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20 uppercase tracking-wider">
+            <Trophy className="w-3 h-3 text-purple-600 dark:text-purple-400" />
             <span>{sectionConfig?.badgeTitle || 'Milestones'}</span>
           </div>
-          <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-950 dark:text-white">
+          <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">
             {sectionConfig?.heading || 'Events & Achievements'}
           </h2>
           {sectionConfig?.subtitle && (
-            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-light leading-relaxed">
+            <p className="text-sm sm:text-base text-slate-700 dark:text-slate-400 font-light leading-relaxed">
               {sectionConfig.subtitle}
             </p>
           )}
@@ -134,7 +134,7 @@ export const EventsSection: React.FC = () => {
 
         {/* Filter Pills & Admin Add Button */}
         <div className="flex flex-wrap items-center justify-center gap-4 mb-10">
-          <div className="inline-flex items-center gap-2 p-1.5 rounded-2xl bg-white/70 dark:bg-slate-900/70 border border-slate-200 dark:border-white/10 backdrop-blur-md">
+          <div className="inline-flex items-center gap-2 p-1.5 rounded-2xl bg-slate-800 dark:bg-slate-900/70 border border-slate-700 dark:border-white/10 backdrop-blur-md shadow-lg shadow-slate-900/10">
             {(['all', 'events', 'awards', 'certificates'] as const).map((cat) => (
               <button
                 key={cat}
@@ -142,7 +142,7 @@ export const EventsSection: React.FC = () => {
                 className={`px-4 py-2 rounded-xl text-xs font-bold capitalize transition-all ${
                   filter === cat
                     ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md shadow-purple-500/25'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white'
+                    : 'text-slate-300 hover:text-white hover:bg-white/5'
                 }`}
               >
                 {cat === 'all' ? 'All Milestones' : cat}
@@ -251,7 +251,7 @@ export const EventsSection: React.FC = () => {
 
                   {/* Card footer */}
                   <div className="p-5 bg-white/40 dark:bg-slate-900/40 border-t border-slate-200/50 dark:border-white/5 space-y-3">
-                    <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed font-light">
+                    <p className="text-xs text-slate-700 dark:text-slate-400 line-clamp-2 leading-relaxed font-light">
                       {item.description}
                     </p>
 
