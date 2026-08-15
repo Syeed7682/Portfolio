@@ -1,6 +1,6 @@
-# Dynamic Personal Portfolio
+# Kha. Mo. Syeed Asif — Full-Stack Portfolio
 
-Welcome to the source code of my dynamic, full-stack personal portfolio! This website is designed to showcase my projects, research publications, events, and achievements in an interactive, high-performance manner.
+Welcome to the source code of my dynamic, full-stack personal portfolio! Designed to showcase projects, research publications, achievements, experience, and skills in an interactive, high-performance web experience.
 
 🌐 **Live Demo:** [https://syeed-asif.pages.dev/](https://syeed-asif.pages.dev/)  
 ⚙️ **Backend API:** [https://portfolio-2-afjx.onrender.com](https://portfolio-2-afjx.onrender.com)
@@ -9,22 +9,25 @@ Welcome to the source code of my dynamic, full-stack personal portfolio! This we
 
 ## 🌟 Features
 
-- **Modern & Responsive UI:** Built with HTML5, vanilla JavaScript, and Tailwind CSS. Features a sleek dark theme with glassmorphism effects and smooth micro-animations.
-- **Ultra-Fast Database Caching:** Portfolio data is combined and served using an in-memory caching system, reducing database query overhead and making page loads virtually instant.
-- **Keep-Alive Uptime Monitoring:** Built-in `/health`, `/api/health`, and `/ping` endpoints configured for UptimeRobot monitoring every 5 minutes to prevent backend sleeping/snoozing on free hosting.
-- **Secure Admin Dashboard:** A dedicated `/admin` route allows managing (Create, Read, Update, Delete) projects, publications, achievements, and messages directly from the browser.
-- **Dynamic CV Manager:** Upload and manage your CV (PDF) from the Admin Panel. Features live PDF download and dynamic navbar integration.
-- **Contact Message Dashboard:** View all contact submissions directly from the admin panel with one-click email reply shortcuts.
-- **Transactional Email Routing:** Submissions are automatically forwarded to your inbox via the Resend API (with Nodemailer SMTP fallback).
+- **React 19 & Vite Architecture:** Built with React 19, TypeScript, Tailwind CSS, and Lucide React icons for rapid component rendering and state management.
+- **Dynamic Layout & Drag-and-Drop Order:** Reorder portfolio sections on the fly or toggle section visibility directly from the Admin Panel.
+- **Live Theme Customizer:** 7 curated theme presets (*Purple, Cyan, Emerald, Rose, Amber, Blue, Midnight*), dark/light mode switcher, glass blur intensity, and border radius customization.
+- **Hero Profile Customizer:** Dynamically edit greeting text, typewriter titles, bio, profile photo, social links, and CTA buttons from the Admin Dashboard.
+- **About Me & Interactive Stats:** Custom About section with editable paragraphs, cover image, and live metric counter badges.
+- **Categorized Skills Catalog:** Showcase skills by domain (*AI/ML, Data Science, Full-Stack, Hardware, Tools*) with animated proficiency bars and level tags.
+- **Education & Experience Timeline:** Manage education milestones and professional experience entries dynamically with left/right alternating timeline cards.
+- **Embedded Admin Dashboard:** Comprehensive control panel for Projects, Publications, Achievements/Events, Experience, Skills, Messages, CV/Resume, and Backup Settings.
+- **HD Lightbox Media Preview:** Interactive full-screen lightbox for previewing project screenshots and achievement certificates.
+- **Keep-Alive Uptime Robot Monitoring:** Built-in `/health`, `/api/health`, and `/ping` endpoints to prevent free hosting from sleeping.
+- **Transactional Email Routing:** Contact form submissions automatically notify your inbox via Resend API (with Nodemailer SMTP fallback).
 
 ---
 
 ## 🛠️ Technology Stack
 
-- **Frontend:** HTML5, Vanilla JavaScript, Tailwind CSS, FontAwesome, Cloudflare Pages
+- **Frontend:** React 19, TypeScript, Vite, Tailwind CSS, Motion, Lucide React, Canvas Confetti
 - **Backend:** Node.js, Express.js, Nodemailer, Resend SDK, Render
 - **Database:** MongoDB Atlas
-- **Authentication:** Google Sign-In API (for the Admin Panel)
 - **Monitoring:** UptimeRobot (pings `/health` every 5m)
 
 ---
@@ -50,9 +53,8 @@ To prevent backend sleeping on free hosting platforms (such as Render), the serv
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (v16 or higher)
-- A [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) cluster (or local MongoDB instance)
-- A Google Cloud Console project (for OAuth credentials)
+- [Node.js](https://nodejs.org/) (v18 or higher)
+- A [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) cluster
 - A free [Resend](https://resend.com) account (for email forwarding)
 
 ### Installation
@@ -69,7 +71,7 @@ To prevent backend sleeping on free hosting platforms (such as Render), the serv
    ```
 
 3. **Configure Environment Variables:**
-   Create a `.env` file in the root directory (already included in `.gitignore`):
+   Create a `.env` file in the root directory:
    ```env
    PORT=3000
    MONGODB_URI=your_mongodb_connection_string
@@ -78,25 +80,24 @@ To prevent backend sleeping on free hosting platforms (such as Render), the serv
    GMAIL_PASS=your_gmail_app_password
    ```
 
-4. **Set Up Google OAuth (Admin Panel):**
-   - In `admin.html`, update the client ID in the Google Sign-In element to match yours.
-   - Update the `authorizedEmail` variable in `admin.html` with your Google email.
+4. **Run Development Server:**
+   ```bash
+   npm run dev
+   ```
 
-5. **Run the Application:**
+5. **Run Backend Server:**
    ```bash
    npm start
    ```
-   *The server will start at `http://localhost:3000` and automatically seed initial database entries if collections are empty.*
 
 ---
 
 ## 📂 Project Structure
 
-- `index.html`: The main landing page showcasing the portfolio and projects.
-- `admin.html`: The secure dashboard for managing content and viewing messages.
-- `server.js`: The Express.js backend handling API requests, health monitoring, cache middleware, and email forwarding.
-- `wrangler.toml`: Cloudflare Pages deployment configuration.
-- `.env`: Stores sensitive database links and API keys locally.
+- `src/components/portfolio/`: React components for Hero, About, Skills, Projects, Publications, Events, Experience, Contact, and Footer.
+- `src/components/admin/`: Admin components for Content Manager, Hero Editor, Layout Customizer, Theme Customizer, Resume Manager, Messages Inbox, and Backup.
+- `src/context/PortfolioContext.tsx`: Central state management, LocalStorage persistence, and API synchronization.
+- `server.js`: Express.js backend handling MongoDB connection, health monitoring, cache middleware, and email routing.
 
 ---
 
