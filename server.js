@@ -163,9 +163,13 @@ app.put('/api/events/:id', async (req, res) => {
     try {
         if (!eventsCollection) return res.status(500).json({ error: "DB not connected" });
         const { title, description, image } = req.body;
+        const updateData = { title, description, updatedAt: new Date().toISOString() };
+        if (image !== undefined && image !== null && image !== '') {
+            updateData.image = image;
+        }
         const result = await eventsCollection.updateOne(
             { _id: new ObjectId(req.params.id) },
-            { $set: { title, description, image, updatedAt: new Date().toISOString() } }
+            { $set: updateData }
         );
         res.json(result);
     } catch (error) {
@@ -214,9 +218,13 @@ app.put('/api/certificates/:id', async (req, res) => {
     try {
         if (!certCollection) return res.status(500).json({ error: "DB not connected" });
         const { title, description, image } = req.body;
+        const updateData = { title, description, updatedAt: new Date().toISOString() };
+        if (image !== undefined && image !== null && image !== '') {
+            updateData.image = image;
+        }
         const result = await certCollection.updateOne(
             { _id: new ObjectId(req.params.id) },
-            { $set: { title, description, image, updatedAt: new Date().toISOString() } }
+            { $set: updateData }
         );
         res.json(result);
     } catch (error) {
@@ -267,9 +275,13 @@ app.put('/api/projects/:id', async (req, res) => {
     try {
         if (!projectsCollection) return res.status(500).json({ error: "DB not connected" });
         const { title, description, image, link, type } = req.body;
+        const updateData = { title, description, link, type, updatedAt: new Date().toISOString() };
+        if (image !== undefined && image !== null && image !== '') {
+            updateData.image = image;
+        }
         const result = await projectsCollection.updateOne(
             { _id: new ObjectId(req.params.id) },
-            { $set: { title, description, image, link, type, updatedAt: new Date().toISOString() } }
+            { $set: updateData }
         );
         res.json(result);
     } catch (error) {

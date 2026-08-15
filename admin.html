@@ -239,6 +239,8 @@
     <script>
         let currentTab = 'events';
         let editingId = null;
+        let editingItemImage = null;
+        let currentItemsMap = {};
         const authorizedEmail = 'kmsyeedasif@gmail.com';
         const API_BASE = 'https://portfolio-2-afjx.onrender.com';
 
@@ -332,6 +334,9 @@
                     reader.onloadend = () => resolve(reader.result);
                     reader.readAsDataURL(file);
                 });
+            } else if (!mediaData && editingId && editingItemImage) {
+                // Retain existing image if no new file/URL is provided during edit
+                mediaData = editingItemImage;
             }
 
             if (!mediaData && !editingId && category !== 'publications') return alert('Please provide an image/video');
@@ -339,7 +344,10 @@
             try {
                 const endpoint = `${API_BASE}/api/${category}${editingId ? '/' + editingId : ''}`;
                 const method = editingId ? 'PUT' : 'POST';
-                const payload = { title, description: desc, image: mediaData };
+                const payload = { title, description: desc };
+                if (mediaData) {
+                    payload.image = mediaData;
+                }
 
                 if (category === 'projects') {
                     payload.link = document.getElementById('entry-link').value;
@@ -370,6 +378,7 @@
         }
 
         function resetForm() {
+            editingItemImage = null;
             document.getElementById('entry-title').value = '';
             document.getElementById('entry-desc').value = '';
             document.getElementById('entry-url').value = '';
@@ -383,8 +392,13 @@
             document.getElementById('file-label').textContent = 'Choose file...';
         }
 
-        function startEdit(item) {
+        function startEdit(idOrItem) {
+            const item = typeof idOrItem === 'object' ? idOrItem : currentItemsMap[idOrItem];
+            if (!item) return;
+
             editingId = item._id;
+            editingItemImage = item.image || null;
+
             document.getElementById('entry-title').value = item.title || '';
             document.getElementById('entry-desc').value = item.description || '';
             document.getElementById('entry-url').value = (item.image && item.image.startsWith('http')) ? item.image : '';
@@ -397,6 +411,12 @@
             document.getElementById('entry-category').value = currentTab;
             toggleProjectFields(currentTab);
 
+            if (item.image) {
+                document.getElementById('file-label').textContent = 'Existing image loaded (click to replace)...';
+            } else {
+                document.getElementById('file-label').textContent = 'Choose file...';
+            }
+
             const btn = document.querySelector('button[onclick="submitEntry()"]');
             btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i> Update Entry';
             btn.classList.replace('from-purple-600', 'from-blue-600');
@@ -406,6 +426,7 @@
 
         function cancelEdit() {
             editingId = null;
+            editingItemImage = null;
             resetForm();
             const btn = document.querySelector('button[onclick="submitEntry()"]');
             btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i> Publish to Portfolio';
@@ -420,6 +441,8 @@
                 const endpoint = `${API_BASE}/api/${currentTab}`;
                 const response = await fetch(endpoint);
                 const items = await response.json();
+
+                currentItemsMap = {};
 
                 if (items.length === 0) {
                     list.innerHTML = '<div class="col-span-full text-center py-20 text-slate-500"><p>No items found in this category.</p></div>';
@@ -457,6 +480,7 @@
                 }
 
                 list.innerHTML = items.map(item => {
+                    currentItemsMap[item._id] = item;
                     const imgUrl = item.image || '';
                     const isVideo = /\.(mp4|webm|ogg|mov)$/i.test(imgUrl) || imgUrl.startsWith('data:video/');
                     const media = imgUrl 
@@ -468,7 +492,7 @@
                             <div class="relative h-40 overflow-hidden">
                                 ${media}
                                 <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-4">
-                                    <button onclick='startEdit(${JSON.stringify(item).replace(/'/g, "&#39;")})' class="flex-grow bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white py-2 rounded-lg transition-all text-xs font-bold uppercase tracking-wider">Edit</button>
+                                    <button onclick="startEdit('${item._id}')" class="flex-grow bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white py-2 rounded-lg transition-all text-xs font-bold uppercase tracking-wider">Edit</button>
                                     <button onclick="deleteItem('${item._id}')" class="flex-grow bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white py-2 rounded-lg transition-all text-xs font-bold uppercase tracking-wider">Delete</button>
                                 </div>
                             </div>
