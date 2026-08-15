@@ -219,7 +219,7 @@ export const ProjectsSection: React.FC = () => {
             className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-white/70 dark:bg-slate-900/80 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 backdrop-blur-xl hover:border-purple-500/50 hover:shadow-xl hover:scale-105 transition-all text-sm font-bold shadow-sm"
           >
             <Github className="w-5 h-5 text-purple-500" />
-            <span>Explore 40+ More Repositories on GitHub</span>
+            <span>Explore More Repositories on GitHub</span>
           </a>
         </div>
       </div>
