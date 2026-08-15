@@ -701,40 +701,61 @@ export const ContentManager: React.FC = () => {
           </div>
 
           <div className="lg:col-span-7 grid sm:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto pr-1">
-            {data.events.map((ev) => (
-              <div
-                key={ev._id}
-                className="rounded-2xl border border-white/10 bg-slate-900/70 overflow-hidden flex flex-col justify-between"
-              >
-                <div className="relative h-32 bg-slate-950">
-                  <img src={ev.image} alt={ev.title} className="w-full h-full object-cover" />
-                  <span className="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-950/80 text-purple-300">
-                    {ev.category}
-                  </span>
-                </div>
-                <div className="p-4 space-y-2">
-                  <h4 className="text-xs font-bold text-white truncate">{ev.title}</h4>
-                  <p className="text-[11px] text-slate-400 line-clamp-2">{ev.description}</p>
-                  <div className="flex justify-between pt-2 border-t border-white/5">
-                    <button
-                      onClick={() => {
-                        setEditingId(ev._id);
-                        setEventForm({ ...ev });
-                      }}
-                      className="px-2.5 py-1 rounded bg-blue-500/10 text-blue-400 text-xs font-bold"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => deleteEvent(ev._id)}
-                      className="px-2.5 py-1 rounded bg-red-500/10 text-red-400 text-xs font-bold"
-                    >
-                      Delete
-                    </button>
+            {data.events.map((ev) => {
+              const isVideo = /\.(mp4|webm|ogg|mov)$/i.test(ev.image);
+              return (
+                <div
+                  key={ev._id}
+                  className="rounded-2xl border border-white/10 bg-slate-900/70 overflow-hidden flex flex-col"
+                >
+                  <div className="relative h-40 w-full shrink-0 bg-slate-950 overflow-hidden">
+                    {isVideo ? (
+                      <video src={ev.image} muted loop playsInline className="w-full h-full object-cover" />
+                    ) : (
+                      <img src={ev.image} alt={ev.title} className="w-full h-full object-cover" />
+                    )}
+                    <span className="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-950/80 text-purple-300">
+                      {ev.category === 'events' ? 'Event' : ev.category === 'awards' ? 'Award' : 'Certificate'}
+                    </span>
+                  </div>
+                  <div className="p-4 space-y-2 flex-1 flex flex-col justify-between">
+                    <div>
+                      <h4 className="text-xs font-bold text-white line-clamp-1 mb-1">{ev.title}</h4>
+                      <p className="text-[11px] text-slate-400 line-clamp-2">{ev.description}</p>
+                    </div>
+                    <div className="flex justify-between pt-3 mt-2 border-t border-white/5 gap-2">
+                      <button
+                        onClick={() => {
+                          setEditingId(ev._id);
+                          setEventForm({
+                            title: ev.title,
+                            description: ev.description,
+                            image: ev.image,
+                            category: ev.category || 'events',
+                            date: ev.date || '',
+                            organization: ev.organization || '',
+                            credentialUrl: ev.credentialUrl || '',
+                          });
+                        }}
+                        className="flex-1 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-white text-xs font-bold transition-colors"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (window.confirm(`Delete "${ev.title}"?`)) {
+                            deleteEvent(ev._id);
+                          }
+                        }}
+                        className="flex-1 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white text-xs font-bold transition-colors"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
