@@ -96,6 +96,7 @@
                                     <option value="certificates">Achievement</option>
                                     <option value="projects">Featured Project</option>
                                     <option value="publications">Research Publication</option>
+                                    <option value="experience">Education & Experience</option>
                                 </select>
                             </div>
 
@@ -167,6 +168,29 @@
                                 </div>
                             </div>
 
+                            <div id="experience-fields" class="hidden space-y-4 pt-2">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Institution / Organization</label>
+                                    <input type="text" id="entry-institution" placeholder="e.g. East West University, Dhaka"
+                                        class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500 transition-colors text-sm text-white">
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Period / Year</label>
+                                        <input type="text" id="entry-period" placeholder="e.g. 2023 - Present"
+                                            class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500 transition-colors text-sm text-white">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Category Type</label>
+                                        <select id="entry-exp-type"
+                                            class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500 transition-colors text-sm text-white">
+                                            <option value="Experience">Experience</option>
+                                            <option value="Education">Education</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
                             <button onclick="submitEntry()"
                                 class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-purple-500/20 transform active:scale-[0.98] transition-all mt-4">
                                 <i class="fa-solid fa-paper-plane mr-2"></i> Publish to Portfolio
@@ -221,6 +245,8 @@
                                     class="px-4 py-1.5 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white">Projects</button>
                                 <button onclick="switchTab('publications')" id="tab-publications"
                                     class="px-4 py-1.5 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white">Publications</button>
+                                <button onclick="switchTab('experience')" id="tab-experience"
+                                    class="px-4 py-1.5 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white">Education & Exp</button>
                                 <button onclick="switchTab('messages')" id="tab-messages"
                                     class="px-4 py-1.5 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white">Messages</button>
                             </div>
@@ -291,26 +317,32 @@
         function toggleProjectFields(category) {
             const projFields = document.getElementById('project-fields');
             const pubFields = document.getElementById('publication-fields');
+            const expFields = document.getElementById('experience-fields');
             
             projFields.classList.add('hidden');
             pubFields.classList.add('hidden');
+            if (expFields) expFields.classList.add('hidden');
             
             if (category === 'projects') {
                 projFields.classList.remove('hidden');
             } else if (category === 'publications') {
                 pubFields.classList.remove('hidden');
+            } else if (category === 'experience' && expFields) {
+                expFields.classList.remove('hidden');
             }
         }
 
         function switchTab(tab) {
             currentTab = tab;
             cancelEdit();
-            ['events', 'certificates', 'projects', 'publications', 'messages'].forEach(t => {
+            ['events', 'certificates', 'projects', 'publications', 'experience', 'messages'].forEach(t => {
                 const btn = document.getElementById(`tab-${t}`);
-                if (t === tab) {
-                    btn.className = 'px-4 py-1.5 rounded-md text-sm font-medium transition-all bg-purple-600 text-white shadow-sm';
-                } else {
-                    btn.className = 'px-4 py-1.5 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white';
+                if (btn) {
+                    if (t === tab) {
+                        btn.className = 'px-4 py-1.5 rounded-md text-sm font-medium transition-all bg-purple-600 text-white shadow-sm';
+                    } else {
+                        btn.className = 'px-4 py-1.5 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white';
+                    }
                 }
             });
             loadContent();
@@ -339,7 +371,7 @@
                 mediaData = editingItemImage;
             }
 
-            if (!mediaData && !editingId && category !== 'publications') return alert('Please provide an image/video');
+            if (!mediaData && !editingId && category !== 'publications' && category !== 'experience') return alert('Please provide an image/video');
 
             try {
                 const endpoint = `${API_BASE}/api/${category}${editingId ? '/' + editingId : ''}`;
@@ -357,6 +389,10 @@
                     payload.conference = document.getElementById('entry-conference').value;
                     payload.year = document.getElementById('entry-year').value;
                     payload.link = document.getElementById('entry-pub-link').value;
+                } else if (category === 'experience') {
+                    payload.institution = document.getElementById('entry-institution').value;
+                    payload.period = document.getElementById('entry-period').value;
+                    payload.type = document.getElementById('entry-exp-type').value;
                 }
 
                 const response = await fetch(endpoint, {
@@ -389,6 +425,9 @@
             document.getElementById('entry-conference').value = '';
             document.getElementById('entry-year').value = '';
             document.getElementById('entry-pub-link').value = '';
+            if (document.getElementById('entry-institution')) document.getElementById('entry-institution').value = '';
+            if (document.getElementById('entry-period')) document.getElementById('entry-period').value = '';
+            if (document.getElementById('entry-exp-type')) document.getElementById('entry-exp-type').value = 'Experience';
             document.getElementById('file-label').textContent = 'Choose file...';
         }
 
@@ -408,6 +447,11 @@
             document.getElementById('entry-conference').value = item.conference || '';
             document.getElementById('entry-year').value = item.year || '';
             document.getElementById('entry-pub-link').value = item.link || '';
+
+            if (document.getElementById('entry-institution')) document.getElementById('entry-institution').value = item.institution || '';
+            if (document.getElementById('entry-period')) document.getElementById('entry-period').value = item.period || '';
+            if (document.getElementById('entry-exp-type')) document.getElementById('entry-exp-type').value = item.type || 'Experience';
+
             document.getElementById('entry-category').value = currentTab;
             toggleProjectFields(currentTab);
 
@@ -476,6 +520,31 @@
                             </div>
                         </div>
                     `).join('');
+                    return;
+                }
+
+                if (currentTab === 'experience') {
+                    list.innerHTML = items.map(item => {
+                        currentItemsMap[item._id] = item;
+                        const badgeColor = item.type === 'Education' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-purple-500/10 text-purple-400 border-purple-500/20';
+                        return `
+                            <div class="bg-slate-800/50 border border-white/5 rounded-2xl p-6 relative group flex flex-col justify-between col-span-full sm:col-span-1">
+                                <div>
+                                    <div class="flex justify-between items-start mb-3 gap-2">
+                                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wider ${badgeColor}">${item.type || 'Experience'}</span>
+                                        <span class="text-xs text-slate-400 font-mono">${item.period || ''}</span>
+                                    </div>
+                                    <h3 class="font-bold text-base text-white mb-1">${item.title}</h3>
+                                    <p class="text-xs text-purple-400 font-medium mb-3">${item.institution || ''}</p>
+                                    <p class="text-xs text-slate-400 leading-relaxed">${item.description || ''}</p>
+                                </div>
+                                <div class="mt-4 pt-3 border-t border-white/5 flex items-center gap-2">
+                                    <button onclick="startEdit('${item._id}')" class="flex-1 bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-white py-1.5 rounded-lg transition-all text-xs font-bold uppercase tracking-wider">Edit</button>
+                                    <button onclick="deleteItem('${item._id}')" class="flex-1 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white py-1.5 rounded-lg transition-all text-xs font-bold uppercase tracking-wider">Delete</button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
                     return;
                 }
 

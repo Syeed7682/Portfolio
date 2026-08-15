@@ -40,14 +40,15 @@ app.get('/api/portfolio-data', async (req, res) => {
             return res.status(500).json({ error: "DB not connected" });
         }
 
-        const [events, certs, projects, publications] = await Promise.all([
+        const [events, certs, projects, publications, experience] = await Promise.all([
             eventsCollection.find().sort({ _id: -1 }).toArray(),
             certCollection.find().sort({ _id: -1 }).toArray(),
             projectsCollection.find().sort({ _id: -1 }).toArray(),
-            publicationsCollection.find().sort({ _id: -1 }).toArray()
+            publicationsCollection.find().sort({ _id: -1 }).toArray(),
+            experienceCollection ? experienceCollection.find().sort({ _id: -1 }).toArray() : Promise.resolve([])
         ]);
 
-        portfolioDataCache = { events, certs, projects, publications };
+        portfolioDataCache = { events, certs, projects, publications, experience };
         res.json(portfolioDataCache);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -61,7 +62,8 @@ app.use((req, res, next) => {
         if (path.startsWith('/api/publications') || 
             path.startsWith('/api/events') || 
             path.startsWith('/api/certificates') || 
-            path.startsWith('/api/projects')) {
+            path.startsWith('/api/projects') ||
+            path.startsWith('/api/experience')) {
             clearCache();
         }
     }
@@ -289,6 +291,64 @@ app.put('/api/projects/:id', async (req, res) => {
     }
 });
 
+// Education & Experience API
+app.get('/api/experience', async (req, res) => {
+    try {
+        if (!experienceCollection) return res.status(500).json({ error: "DB not connected" });
+        const items = await experienceCollection.find().sort({ _id: -1 }).toArray();
+        res.json(items);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/experience', async (req, res) => {
+    try {
+        if (!experienceCollection) return res.status(500).json({ error: "DB not connected" });
+        const { title, institution, period, description, type, image } = req.body;
+        const result = await experienceCollection.insertOne({
+            title,
+            institution,
+            period,
+            description,
+            type: type || 'Experience',
+            image: image || null,
+            createdAt: new Date().toISOString()
+        });
+        res.status(201).json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.delete('/api/experience/:id', async (req, res) => {
+    try {
+        if (!experienceCollection) return res.status(500).json({ error: "DB not connected" });
+        const result = await experienceCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ message: 'Error' });
+    }
+});
+
+app.put('/api/experience/:id', async (req, res) => {
+    try {
+        if (!experienceCollection) return res.status(500).json({ error: "DB not connected" });
+        const { title, institution, period, description, type, image } = req.body;
+        const updateData = { title, institution, period, description, type, updatedAt: new Date().toISOString() };
+        if (image !== undefined && image !== null && image !== '') {
+            updateData.image = image;
+        }
+        const result = await experienceCollection.updateOne(
+            { _id: new ObjectId(req.params.id) },
+            { $set: updateData }
+        );
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Messages API
 app.get('/api/messages', async (req, res) => {
     try {
@@ -503,6 +563,7 @@ let projectsCollection;
 let publicationsCollection;
 let messagesCollection;
 let cvCollection;
+let experienceCollection;
 
 async function connectDB() {
     try {
@@ -515,6 +576,7 @@ async function connectDB() {
         publicationsCollection = db.collection("publications");
         messagesCollection = db.collection("messages");
         cvCollection = db.collection("cv");
+        experienceCollection = db.collection("experience");
 
         // Migration: Add existing projects if empty
         const projectCount = await projectsCollection.countDocuments();
@@ -588,6 +650,86 @@ async function connectDB() {
             ];
             await publicationsCollection.insertMany(initialPublications);
             console.log("Publications migrated to MongoDB!");
+        }
+        // Migration: Add existing Education & Experience if empty
+        const expCount = await experienceCollection.countDocuments();
+        if (expCount === 0) {
+            const initialExperience = [
+                {
+                    title: "B.Sc. in Computer Science & Engineering",
+                    institution: "East West University, Dhaka",
+                    period: "Expected 2026",
+                    description: "Major: Data Science",
+                    type: "Education",
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    title: "Higher Secondary Certificate (HSC)",
+                    institution: "Comilla Government College",
+                    period: "2021",
+                    description: "Science Stream",
+                    type: "Education",
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    title: "Secondary School Certificate (SSC)",
+                    institution: "Comilla Modern High School",
+                    period: "2019",
+                    description: "Science Stream",
+                    type: "Education",
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    title: "Full-Stack Developer",
+                    institution: "Multiple Projects",
+                    period: "2023 - Present",
+                    description: "Developed 15+ scalable web applications and ML models.",
+                    type: "Experience",
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    title: "Data Science Enthusiast",
+                    institution: "Open Source Community",
+                    period: "2024 - Present",
+                    description: "Contributing to ML and advanced data analysis projects.",
+                    type: "Experience",
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    title: "Technical Contributor",
+                    institution: "Open Source Initiatives",
+                    period: "2023 - Present",
+                    description: "Active contributor to community-driven projects.",
+                    type: "Experience",
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    title: "Associate Executive",
+                    institution: "East West University Robotics Club",
+                    period: "2024 - Present",
+                    description: "Volunteer Trainer, Event & Logistics Coordinator. Conducted technical training for 200+ members.",
+                    type: "Experience",
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    title: "Dedicated Volunteer",
+                    institution: "EWU CSE Fest & Robo Fest 2024",
+                    period: "2024",
+                    description: "Actively volunteered for EWU CSE Fest and EWURC National Robo Fest 2024, managing logistics and event flow.",
+                    type: "Experience",
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    title: "Leadership Roles",
+                    institution: "CGC Science Club",
+                    period: "2020 - 2021",
+                    description: "Event & Logistics Manager (Science Club) and Volunteer Commanding Officer (Science Fair & Farewell).",
+                    type: "Experience",
+                    createdAt: new Date().toISOString()
+                }
+            ];
+            await experienceCollection.insertMany(initialExperience);
+            console.log("Education & Experience migrated to MongoDB!");
         }
     } catch (error) {
         console.error("MongoDB connection error:", error);
