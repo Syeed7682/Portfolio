@@ -7,12 +7,13 @@ import {
   Maximize2, 
   Sparkles, 
   Play,
-  Pencil
+  Pencil,
+  Trash2
 } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
 
 export const EventsSection: React.FC = () => {
-  const { data, openMediaModal, isAdmin, setActiveView } = usePortfolio();
+  const { data, openMediaModal, isAdmin, setActiveView, deleteEvent } = usePortfolio();
   const sectionConfig = data.sections.find(s => s.id === 'events');
   const [filter, setFilter] = useState<'all' | 'events' | 'certificates' | 'awards'>('all');
 
@@ -71,18 +72,20 @@ export const EventsSection: React.FC = () => {
             return (
               <div
                 key={item._id}
-                onClick={() => openMediaModal({
-                  title: item.title,
-                  description: item.description,
-                  image: item.image,
-                  date: item.date,
-                  category: item.category,
-                  organization: item.organization,
-                })}
                 className="group cursor-pointer rounded-3xl overflow-hidden bg-white/70 dark:bg-slate-900/60 border border-slate-200/80 dark:border-white/10 backdrop-blur-xl hover:border-purple-500/50 hover:shadow-2xl hover:shadow-purple-500/15 hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between"
               >
                 {/* Media Container */}
-                <div className="relative h-60 w-full overflow-hidden bg-slate-950">
+                <div
+                  className="relative h-60 w-full overflow-hidden bg-slate-950"
+                  onClick={() => openMediaModal({
+                    title: item.title,
+                    description: item.description,
+                    image: item.image,
+                    date: item.date,
+                    category: item.category,
+                    organization: item.organization,
+                  })}
+                >
                   {isVideo ? (
                     <video
                       src={item.image}
@@ -106,20 +109,11 @@ export const EventsSection: React.FC = () => {
                   {/* Dark gradient overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
 
-                  {/* Category Pill + Admin Edit Button */}
-                  <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
+                  {/* Category Pill */}
+                  <div className="absolute top-4 left-4 z-10">
                     <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-950/80 backdrop-blur-md text-purple-300 border border-purple-500/30">
                       {item.category}
                     </span>
-                    {isAdmin && (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setActiveView('admin'); }}
-                        title="Edit in Admin Panel"
-                        className="w-7 h-7 rounded-full bg-amber-500/90 hover:bg-amber-400 text-white flex items-center justify-center shadow-md hover:scale-110 transition-all"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                    )}
                   </div>
 
                   {isVideo && (
@@ -143,11 +137,37 @@ export const EventsSection: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Card footer description */}
-                <div className="p-5 bg-white/40 dark:bg-slate-900/40 border-t border-slate-200/50 dark:border-white/5">
+                {/* Card footer */}
+                <div className="p-5 bg-white/40 dark:bg-slate-900/40 border-t border-slate-200/50 dark:border-white/5 space-y-3">
                   <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed font-light">
                     {item.description}
                   </p>
+
+                  {/* Admin Edit & Delete Buttons */}
+                  {isAdmin && (
+                    <div className="flex items-center gap-2 pt-2 border-t border-slate-200/50 dark:border-white/5">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveView('admin');
+                        }}
+                        className="flex-1 px-3 py-2 rounded-xl bg-blue-500/10 hover:bg-blue-500 text-blue-500 dark:text-blue-400 hover:text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                        Edit
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteEvent(item._id);
+                        }}
+                        className="flex-1 px-3 py-2 rounded-xl bg-red-500/10 hover:bg-red-500 text-red-500 dark:text-red-400 hover:text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Delete
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             );
