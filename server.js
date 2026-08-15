@@ -11,6 +11,10 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
+// Serve Vite React build (production)
+const DIST_DIR = path.join(__dirname, 'dist');
+app.use(express.static(DIST_DIR));
+
 // Health check endpoints for UptimeRobot / uptime monitoring (prevents server sleep)
 app.get(['/health', '/api/health', '/ping'], (req, res) => {
     res.status(200).json({
@@ -736,9 +740,22 @@ async function connectDB() {
     }
 }
 
-// Admin Route
-app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, 'admin.html'));
+// SPA Catch-all: serve React app for all non-API routes
+// The Admin panel is now handled inside the React application
+app.get('*', (req, res) => {
+    const indexPath = path.join(DIST_DIR, 'index.html');
+    res.sendFile(indexPath, (err) => {
+        if (err) {
+            // dist not built yet — send a redirect hint
+            res.status(503).send(`
+                <!DOCTYPE html>
+                <html><head><title>Building...</title></head>
+                <body style="font-family:sans-serif;text-align:center;padding:60px;background:#0f172a;color:#e2e8f0">
+                <h2>🔧 Portfolio is building...</h2>
+                <p>Run <code>npm run build</code> then restart the server.</p>
+                </body></html>`);
+        }
+    });
 });
 
 
