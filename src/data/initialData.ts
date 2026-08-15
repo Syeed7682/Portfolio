@@ -289,15 +289,15 @@ export const initialPortfolioData: PortfolioData = {
   publications: [
     {
       _id: 'pub-1',
-      title: 'Real-Time UAV-Based Building Surface Defect Detection: A Dataset-Driven Lightweight CNN Framework with Grad-CAM and Explainability',
-      description: 'Achieved 95.37% accuracy with 5x performance on device-class edge devices. Integrated Grad-CAM explainability streaming to mobile devices for real-time visual justification. A dataset-driven lightweight CNN framework for real-time UAV-based building surface defect detection and explainability.',
-      authors: 'Kha. Mo. Syeed Asif, Mohammad Hasan Aly, Nafisur Ul Islam, Baigun Devi, Torania Islam, H. Saddam Hossain Khan',
-      conference: 'IEEE International Conference on Quantum Physics, AI & Intelligent Networking (QPAIN 2025)',
+      title: 'Real-Time UAV-Based Building Surface Defect Detection: A Dataset-Driven Lightweight CNN Framework with Grad-CAM Explainability',
+      description: 'Achieved 95.39% accuracy with 15 fps inference on Jetson-class edge devices. Integrated Grad-CAM explainability streamed to mobile devices for real-time visual justification.',
+      authors: 'Kha. Mo. Syeed Asif, Maherun Nessa Isty, Raihan Ul Islam, Raiyan Gani, Tasmia Islam, M. Saddam Hossain Khan',
+      conference: '2025 International Conference on Quantum Photonics, Artificial Intelligence, and Networking (QPAIN)',
       year: 2025,
       link: 'https://doi.org/10.1109/QPAIN.2025.001',
       doi: '10.1109/QPAIN.2025.001',
-      tags: ['UAV', 'CNN', 'Grad-CAM', 'Edge AI', 'Explainability', 'Computer Vision'],
-      createdAt: '2025-06-01',
+      tags: ['UAV', 'CNN', 'Grad-CAM', 'Edge AI', 'Explainability', 'Computer Vision', 'Defect Detection'],
+      createdAt: '2025-01-01',
     },
     {
       _id: 'pub-2',
