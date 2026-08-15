@@ -605,7 +605,7 @@ export const initialPortfolioData: PortfolioData = {
   cv: {
     filename: 'Kha_Mo_Syeed_Asif_Resume_2026.pdf',
     uploadedAt: '2026-08-01T10:00:00Z',
-    fileUrl: 'https://syeed-asif.pages.dev/resume.pdf',
+    fileUrl: '/resume.pdf',
     previewEnabled: true,
     sizeBytes: 1845000,
   },

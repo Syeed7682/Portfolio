@@ -44,9 +44,14 @@
   position: absolute;
   filter: blur(110px);
   border-radius: 9999px;
-  opacity: 0.35;
+  opacity: 0.12;
   will-change: transform;
   animation: floatMesh 14s infinite alternate ease-in-out;
+}
+
+/* In dark mode, increase blob opacity for the moody aesthetic */
+.dark .mesh-blob {
+  opacity: 0.35;
 }
 
 @keyframes floatMesh {
