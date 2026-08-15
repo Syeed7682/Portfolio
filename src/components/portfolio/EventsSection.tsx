@@ -6,12 +6,13 @@ import {
   Building, 
   Maximize2, 
   Sparkles, 
-  Play
+  Play,
+  Pencil
 } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
 
 export const EventsSection: React.FC = () => {
-  const { data, openMediaModal } = usePortfolio();
+  const { data, openMediaModal, isAdmin, setActiveView } = usePortfolio();
   const sectionConfig = data.sections.find(s => s.id === 'events');
   const [filter, setFilter] = useState<'all' | 'events' | 'certificates' | 'awards'>('all');
 
@@ -105,9 +106,20 @@ export const EventsSection: React.FC = () => {
                   {/* Dark gradient overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
 
-                  {/* Category Pill */}
-                  <div className="absolute top-4 left-4 z-10 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-950/80 backdrop-blur-md text-purple-300 border border-purple-500/30">
-                    {item.category}
+                  {/* Category Pill + Admin Edit Button */}
+                  <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
+                    <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-950/80 backdrop-blur-md text-purple-300 border border-purple-500/30">
+                      {item.category}
+                    </span>
+                    {isAdmin && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setActiveView('admin'); }}
+                        title="Edit in Admin Panel"
+                        className="w-7 h-7 rounded-full bg-amber-500/90 hover:bg-amber-400 text-white flex items-center justify-center shadow-md hover:scale-110 transition-all"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
 
                   {isVideo && (
