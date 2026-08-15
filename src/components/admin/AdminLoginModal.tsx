@@ -32,12 +32,14 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Allow authorized email or admin password
-    if (emailInput.toLowerCase().trim() === 'kmsyeedasif@gmail.com' || passwordInput === 'admin' || passwordInput === 'asif2026') {
+    if (
+      emailInput.toLowerCase().trim() === 'kmsyeedasif@gmail.com' && 
+      (passwordInput === 'admin' || passwordInput === 'asif2026')
+    ) {
       loginAdmin(emailInput);
       onClose();
     } else {
-      setAuthError('Unauthorized email or password. Use kmsyeedasif@gmail.com or Quick Access.');
+      setAuthError('Unauthorized email or incorrect password.');
     }
   };
 
@@ -68,32 +70,6 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
           >
             <X className="w-4 h-4" />
           </button>
-        </div>
-
-        {/* Quick 1-Click Access for Reviewer & Owner */}
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-900/40 via-pink-900/30 to-blue-900/40 border border-purple-500/30 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-purple-200 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
-              Verified Authorized Account
-            </span>
-            <span className="text-[10px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full font-mono">
-              kmsyeedasif@gmail.com
-            </span>
-          </div>
-
-          <button
-            onClick={handleGoogleMockLogin}
-            className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-xs shadow-md shadow-purple-500/30 hover:scale-[1.01] active:scale-98 transition-all flex items-center justify-center gap-2"
-          >
-            <ShieldCheck className="w-4 h-4" />
-            <span>Sign In as Syeed Asif (Instant Access)</span>
-          </button>
-        </div>
-
-        <div className="relative text-center">
-          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10" /></div>
-          <span className="relative px-3 bg-slate-900 text-[11px] text-slate-500 uppercase tracking-wider">or sign in with credentials</span>
         </div>
 
         {/* Form */}
