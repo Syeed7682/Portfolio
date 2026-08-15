@@ -108,11 +108,10 @@ export const HeroSection: React.FC = () => {
 
             {/* Typewriter Dynamic Title */}
             <div className="h-10 sm:h-12 flex items-center justify-center lg:justify-start">
-              <div className="inline-flex items-center gap-2 text-xl sm:text-2xl lg:text-3xl font-semibold text-slate-900 dark:text-slate-200">
-                <BrainCircuit className="w-6 h-6 text-purple-500 animate-pulse hidden sm:inline" />
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-slate-900 dark:text-slate-200">
                 <span>{currentText}</span>
-                <span className="w-0.5 h-7 bg-purple-500 animate-pulse" />
-              </div>
+                <span className="w-0.5 h-6 bg-slate-900 dark:bg-slate-200 animate-pulse ml-1 inline-block" />
+              </h2>
             </div>
 
             {/* Bio Paragraph */}
@@ -120,26 +119,15 @@ export const HeroSection: React.FC = () => {
               {hero.bio}
             </p>
 
-            {/* Location & Contact quick tags */}
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 text-xs text-slate-700 dark:text-slate-400 pt-1">
-              <div className="flex items-center gap-1.5 bg-slate-100/80 dark:bg-slate-900/60 px-3 py-1.5 rounded-full border border-slate-300/60 dark:border-white/5">
-                <MapPin className="w-3.5 h-3.5 text-pink-500" />
-                <span>{hero.location}</span>
-              </div>
-              <div className="flex items-center gap-1.5 bg-slate-100/80 dark:bg-slate-900/60 px-3 py-1.5 rounded-full border border-slate-300/60 dark:border-white/5">
-                <Mail className="w-3.5 h-3.5 text-purple-500" />
-                <span>{hero.email}</span>
-              </div>
-            </div>
+
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-4">
               <a
                 href={hero.primaryCtaLink || '#contact'}
-                className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-slate-950 text-white dark:bg-white dark:text-slate-950 font-bold text-sm hover:bg-purple-600 dark:hover:bg-purple-400 dark:hover:text-slate-950 shadow-lg shadow-black/10 hover:shadow-purple-500/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 group"
+                className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-slate-950 text-white dark:bg-white dark:text-slate-950 font-bold text-sm shadow-md hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
               >
-                <span>{hero.primaryCtaText}</span>
-                <Send className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                <span>Get In Touch</span>
               </a>
 
               {/* Resume / CV with Frosted Glass Hover Popup */}
@@ -150,18 +138,17 @@ export const HeroSection: React.FC = () => {
                 onMouseEnter={handleCvMouseEnter}
                 onMouseMove={handleCvMouseMove}
                 onMouseLeave={handleCvMouseLeave}
-                className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 text-white font-bold text-sm shadow-md shadow-purple-600/30 hover:shadow-purple-600/50 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-sm shadow-md hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
               >
                 <FileDown className="w-4 h-4" />
-                <span>Download CV (PDF)</span>
+                <span>Hire Me (CV)</span>
               </a>
 
               <a
                 href={hero.secondaryCtaLink || '#portfolio'}
-                className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-white/70 dark:bg-slate-900/60 text-slate-800 dark:text-white border border-slate-200 dark:border-white/10 font-semibold text-sm backdrop-blur-md hover:bg-white dark:hover:bg-slate-800 shadow-sm hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 font-bold text-sm shadow-sm hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
               >
-                <span>{hero.secondaryCtaText}</span>
-                <ArrowRight className="w-4 h-4 text-purple-400" />
+                <span>View My Work</span>
               </a>
             </div>
 
@@ -172,10 +159,10 @@ export const HeroSection: React.FC = () => {
                   href={hero.githubUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-10 h-10 rounded-xl bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-white/10 flex items-center justify-center hover:text-slate-950 dark:hover:text-white hover:border-purple-400 hover:scale-110 transition-all shadow-sm"
+                  className="w-8 h-8 flex items-center justify-center hover:text-slate-900 dark:hover:text-white transition-colors"
                   aria-label="GitHub Profile"
                 >
-                  <Github className="w-4 h-4" />
+                  <Github className="w-5 h-5" />
                 </a>
               )}
               {hero.linkedinUrl && (
@@ -183,10 +170,10 @@ export const HeroSection: React.FC = () => {
                   href={hero.linkedinUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-10 h-10 rounded-xl bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-white/10 flex items-center justify-center hover:text-[#0a66c2] hover:border-[#0a66c2] hover:scale-110 transition-all shadow-sm"
+                  className="w-8 h-8 flex items-center justify-center hover:text-[#0a66c2] transition-colors"
                   aria-label="LinkedIn Profile"
                 >
-                  <Linkedin className="w-4 h-4" />
+                  <Linkedin className="w-5 h-5" />
                 </a>
               )}
               {hero.facebookUrl && (
@@ -194,19 +181,12 @@ export const HeroSection: React.FC = () => {
                   href={hero.facebookUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-10 h-10 rounded-xl bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-white/10 flex items-center justify-center hover:text-[#1877f2] hover:border-[#1877f2] hover:scale-110 transition-all shadow-sm"
+                  className="w-8 h-8 flex items-center justify-center hover:text-[#1877f2] transition-colors"
                   aria-label="Facebook Profile"
                 >
-                  <Facebook className="w-4 h-4" />
+                  <Facebook className="w-5 h-5" />
                 </a>
               )}
-              <a
-                href={`mailto:${hero.email}`}
-                className="w-10 h-10 rounded-xl bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-white/10 flex items-center justify-center hover:text-purple-400 hover:border-purple-400 hover:scale-110 transition-all shadow-sm"
-                aria-label="Send Email"
-              >
-                <Mail className="w-4 h-4" />
-              </a>
             </div>
           </div>
 
@@ -232,24 +212,18 @@ export const HeroSection: React.FC = () => {
               </div>
 
               {/* Floating Badge Bottom Right */}
-              <div className="absolute -bottom-4 right-0 sm:right-2 p-3.5 rounded-2xl bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-white/15 backdrop-blur-xl shadow-xl flex items-center gap-3 animate-bounce [animation-duration:4s]">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center text-white shadow-md shadow-purple-500/30">
-                  <Code2 className="w-5 h-5" />
+              <div className="absolute -bottom-4 right-0 sm:right-2 px-5 py-3 rounded-[1.25rem] bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-white/10 backdrop-blur-xl shadow-lg flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center text-purple-600 dark:text-purple-400">
+                  <Code2 className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">
-                    {hero.floatingBadgeTitle}
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold tracking-wider">
+                    PASSIONATE
                   </p>
                   <p className="text-xs font-bold text-slate-900 dark:text-white">
-                    {hero.floatingBadgeSubtitle}
+                    Developer & Data Scientist
                   </p>
                 </div>
-              </div>
-
-              {/* Floating Badge Top Left */}
-              <div className="absolute -top-3 left-0 sm:left-2 p-2.5 rounded-2xl bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-white/15 backdrop-blur-xl shadow-xl flex items-center gap-2.5">
-                <Bot className="w-4 h-4 text-purple-400 animate-spin [animation-duration:12s]" />
-                <span className="text-xs font-bold text-slate-900 dark:text-white">EWURC Executive</span>
               </div>
             </div>
           </div>

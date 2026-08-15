@@ -30,6 +30,7 @@ interface PortfolioContextType {
   data: PortfolioData;
   isAdmin: boolean;
   adminEmail: string;
+  adminPin: string;
   activeView: 'portfolio' | 'admin';
   toast: ToastInfo | null;
   isLoadingData: boolean;
@@ -89,6 +90,8 @@ interface PortfolioContextType {
   // Global Reset / Import / Export
   resetToDefaults: () => void;
   importConfig: (imported: PortfolioData) => void;
+  // Admin Credentials
+  updateAdminCredentials: (email: string, pin: string) => void;
 }
 
 const STORAGE_KEY = 'syeed_portfolio_data_v2';
@@ -128,7 +131,12 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return sessionStorage.getItem(AUTH_KEY) === 'true';
   });
   const [isLoadingData, setIsLoadingData] = useState(true);
-  const [adminEmail, setAdminEmail] = useState<string>('kmsyeedasif@gmail.com');
+  const [adminEmail, setAdminEmail] = useState<string>(() => {
+    return localStorage.getItem('syeed_admin_email') || 'kmsyeedasif@gmail.com';
+  });
+  const [adminPin, setAdminPin] = useState<string>(() => {
+    return localStorage.getItem('syeed_admin_pin') || 'asif2026';
+  });
   const [activeView, setActiveView] = useState<'portfolio' | 'admin'>('portfolio');
   const [toast, setToast] = useState<ToastInfo | null>(null);
   const [selectedMediaModal, setSelectedMediaModal] = useState<PortfolioContextType['selectedMediaModal']>(null);
@@ -506,12 +514,21 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     showToast('Configuration imported successfully!', 'success');
   };
 
+  const updateAdminCredentials = (email: string, pin: string) => {
+    setAdminEmail(email);
+    setAdminPin(pin);
+    localStorage.setItem('syeed_admin_email', email);
+    localStorage.setItem('syeed_admin_pin', pin);
+    showToast('Admin credentials updated successfully', 'success');
+  };
+
   return (
     <PortfolioContext.Provider
       value={{
         data,
         isAdmin,
         adminEmail,
+        adminPin,
         activeView,
         toast,
         isLoadingData,
@@ -547,6 +564,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         updateCV,
         resetToDefaults,
         importConfig,
+        updateAdminCredentials,
       }}
     >
       {children}

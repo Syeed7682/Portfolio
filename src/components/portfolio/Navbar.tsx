@@ -106,17 +106,17 @@ export const Navbar: React.FC = () => {
           </a>
 
           {/* Desktop Navigation Links */}
-          <div className="hidden lg:flex items-center gap-1.5 p-1 rounded-full bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200/80 dark:border-white/10 backdrop-blur-md">
+          <div className="hidden lg:flex items-center gap-6">
             {visibleNavLinks.map(sec => {
               const isActive = activeSection === sec.id;
               return (
                 <a
                   key={sec.id}
                   href={`#${sec.id}`}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
+                  className={`text-[13px] font-semibold transition-colors duration-200 ${
                     isActive
-                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-sm shadow-purple-500/30'
-                      : 'text-slate-600 dark:text-slate-300 hover:text-purple-600 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5'
+                      ? 'text-slate-900 dark:text-white'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   {sec.label}
@@ -136,35 +136,30 @@ export const Navbar: React.FC = () => {
                 onMouseEnter={handleCvMouseEnter}
                 onMouseMove={handleCvMouseMove}
                 onMouseLeave={handleCvMouseLeave}
-                className="relative inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold text-white bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-md shadow-purple-500/25 hover:shadow-purple-500/40 hover:scale-[1.02] active:scale-95 transition-all"
+                className="relative inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-pink-500 shadow-md hover:scale-[1.02] active:scale-95 transition-all"
               >
                 <FileDown className="w-3.5 h-3.5" />
-                <span>Resume / CV</span>
+                <span>Hire Me</span>
               </a>
             )}
 
             {/* Admin Panel Toggle */}
             <button
               onClick={() => setActiveView('admin')}
-              className={`p-2 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-all border ${
-                isAdmin
-                  ? 'bg-purple-600/20 text-purple-400 border-purple-500/30 hover:bg-purple-600/30'
-                  : 'bg-slate-100 dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:border-purple-400'
-              }`}
+              className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
               title="Open Admin Dashboard & Customizer"
             >
-              <LayoutDashboard className="w-4 h-4 text-purple-400" />
-              <span className="hidden md:inline">{isAdmin ? 'Admin Live' : 'Admin Panel'}</span>
+              <LayoutDashboard className="w-5 h-5" />
             </button>
 
             {/* Theme Toggle */}
             <button
               onClick={toggleThemeMode}
-              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 hover:text-purple-400 hover:border-purple-400 transition-colors"
+              className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
               aria-label="Toggle Theme"
               title="Toggle Light / Dark mode"
             >
-              {data.theme.mode === 'dark' ? <Sun className="w-4 h-4 text-yellow-400" /> : <Moon className="w-4 h-4 text-purple-600" />}
+              {data.theme.mode === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
           </div>
 

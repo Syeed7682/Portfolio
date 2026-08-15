@@ -25,6 +25,7 @@ import { ThemeCustomizer } from './ThemeCustomizer';
 import { ResumeManager } from './ResumeManager';
 import { MessagesInbox } from './MessagesInbox';
 import { BackupSettings } from './BackupSettings';
+import { AdminSettings } from './AdminSettings';
 
 interface AdminDashboardProps {
   onBackToPortfolio: () => void;
@@ -33,7 +34,7 @@ interface AdminDashboardProps {
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToPortfolio }) => {
   const { data, adminEmail, logoutAdmin } = usePortfolio();
   const [activeTab, setActiveTab] = useState<
-    'layout' | 'profile' | 'content' | 'theme' | 'resume' | 'messages' | 'backup'
+    'layout' | 'profile' | 'content' | 'theme' | 'resume' | 'messages' | 'backup' | 'settings'
   >('layout');
 
   const unreadCount = data.messages.filter(m => !m.isRead).length;
@@ -77,6 +78,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToPortfoli
       id: 'backup',
       label: 'Backup & Recovery',
       icon: <Database className="w-4 h-4" />,
+    },
+    {
+      id: 'settings',
+      label: 'Admin Credentials',
+      icon: <ShieldCheck className="w-4 h-4" />,
     },
   ];
 
@@ -190,6 +196,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToPortfoli
           {activeTab === 'resume' && <ResumeManager />}
           {activeTab === 'messages' && <MessagesInbox />}
           {activeTab === 'backup' && <BackupSettings />}
+          {activeTab === 'settings' && <AdminSettings />}
         </main>
       </div>
     </div>

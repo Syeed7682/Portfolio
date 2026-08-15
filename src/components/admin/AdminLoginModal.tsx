@@ -18,23 +18,18 @@ interface AdminLoginModalProps {
 }
 
 export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClose }) => {
-  const { loginAdmin, showToast } = usePortfolio();
-  const [emailInput, setEmailInput] = useState('kmsyeedasif@gmail.com');
+  const { loginAdmin, adminEmail, adminPin } = usePortfolio();
+  const [emailInput, setEmailInput] = useState(adminEmail);
   const [passwordInput, setPasswordInput] = useState('');
   const [authError, setAuthError] = useState('');
 
   if (!isOpen) return null;
 
-  const handleGoogleMockLogin = () => {
-    loginAdmin('kmsyeedasif@gmail.com');
-    onClose();
-  };
-
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (
-      emailInput.toLowerCase().trim() === 'kmsyeedasif@gmail.com' && 
-      (passwordInput === 'admin' || passwordInput === 'asif2026')
+      emailInput.toLowerCase().trim() === adminEmail.toLowerCase().trim() && 
+      passwordInput === adminPin
     ) {
       loginAdmin(emailInput);
       onClose();
