@@ -88,6 +88,7 @@ export interface Publication {
   link?: string;
   doi?: string;
   tags?: string[];
+  image?: string;
   createdAt?: string;
 }
 

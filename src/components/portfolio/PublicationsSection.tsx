@@ -53,14 +53,20 @@ export const PublicationsSection: React.FC = () => {
           {publications.map((pub) => (
             <div
               key={pub._id}
-              className="p-6 sm:p-8 rounded-3xl bg-white/70 dark:bg-slate-900/60 border border-slate-200/80 dark:border-white/10 backdrop-blur-xl hover:border-purple-500/40 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300 relative group overflow-hidden"
+              className="flex flex-col md:flex-row gap-6 p-6 sm:p-8 rounded-3xl bg-white/70 dark:bg-slate-900/60 border border-slate-200/80 dark:border-white/10 backdrop-blur-xl hover:border-purple-500/40 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300 relative group overflow-hidden"
             >
               {/* Background ambient icon */}
               <div className="absolute -right-6 -bottom-6 text-slate-200/30 dark:text-white/5 text-8xl pointer-events-none group-hover:scale-110 transition-transform duration-500">
                 <BookOpen className="w-32 h-32" />
               </div>
 
-              <div className="relative z-10 space-y-4">
+              {pub.image && (
+                <div className="w-full md:w-1/3 shrink-0 relative z-10 overflow-hidden rounded-2xl border border-slate-200/50 dark:border-white/5 shadow-inner bg-slate-100/50 dark:bg-slate-800/50 flex items-center justify-center">
+                  <img src={pub.image} alt={pub.title} className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500" />
+                </div>
+              )}
+
+              <div className="flex-1 relative z-10 space-y-4">
                 {/* Meta Badges */}
                 <div className="flex flex-wrap items-center gap-2.5">
                   <span className="px-3 py-1 rounded-full text-xs font-bold bg-purple-500/10 text-purple-600 dark:text-purple-300 border border-purple-500/20">
