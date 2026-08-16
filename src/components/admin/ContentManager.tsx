@@ -62,6 +62,7 @@ export const ContentManager: React.FC = () => {
     year: 2025,
     link: '',
     doi: '',
+    image: '',
     tags: ['AI', 'Medical Vision'],
   });
 
@@ -151,6 +152,7 @@ export const ContentManager: React.FC = () => {
       year: new Date().getFullYear(),
       link: '',
       doi: '',
+      image: '',
       tags: [],
     });
   };
@@ -514,15 +516,59 @@ export const ContentManager: React.FC = () => {
                 />
               </div>
 
+              {/* Publication Image Upload or URL */}
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">Paper DOI / PDF Link</label>
+                <label className="text-xs font-semibold text-slate-300">Publication Certificate / Paper Image</label>
+                <div className="flex gap-2">
+                  <input
+                    type="file"
+                    id="pub-img-file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleFileUpload(file, (data) => setPubForm(prev => ({ ...prev, image: data })));
+                    }}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById('pub-img-file')?.click()}
+                    className="w-full py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-300 flex items-center justify-center gap-2"
+                  >
+                    <Upload className="w-3.5 h-3.5 text-purple-400" />
+                    <span>Upload Certificate/Paper Image</span>
+                  </button>
+                </div>
                 <input
                   type="text"
-                  value={pubForm.link}
-                  onChange={(e) => setPubForm(prev => ({ ...prev, link: e.target.value }))}
-                  placeholder="https://doi.org/..."
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950/80 border border-white/10 text-xs text-white focus:outline-none focus:border-purple-500"
+                  value={pubForm.image || ''}
+                  onChange={(e) => setPubForm(prev => ({ ...prev, image: e.target.value }))}
+                  placeholder="Or paste image URL"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950/80 border border-white/10 text-[11px] text-slate-400 focus:outline-none focus:border-purple-500"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-300">DOI (e.g. 10.1109/...)</label>
+                  <input
+                    type="text"
+                    value={pubForm.doi || ''}
+                    onChange={(e) => setPubForm(prev => ({ ...prev, doi: e.target.value }))}
+                    placeholder="10.1109/QPAIN..."
+                    className="w-full px-3 py-2 rounded-xl bg-slate-950/80 border border-white/10 text-xs text-white focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-300">Paper / PDF URL</label>
+                  <input
+                    type="text"
+                    value={pubForm.link || ''}
+                    onChange={(e) => setPubForm(prev => ({ ...prev, link: e.target.value }))}
+                    placeholder="https://doi.org/..."
+                    className="w-full px-3 py-2 rounded-xl bg-slate-950/80 border border-white/10 text-xs text-white focus:outline-none focus:border-purple-500"
+                  />
+                </div>
               </div>
 
               <div className="flex gap-2 pt-2">
@@ -549,34 +595,40 @@ export const ContentManager: React.FC = () => {
             {data.publications.map((pub) => (
               <div
                 key={pub._id}
-                className="p-5 rounded-2xl bg-slate-900/70 border border-white/10 space-y-2"
+                className="p-5 rounded-2xl bg-slate-900/70 border border-white/10 flex gap-4 items-start"
               >
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <span className="text-[10px] font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded mr-2">
-                      {pub.conference} &bull; {pub.year}
-                    </span>
-                    <h4 className="text-sm font-bold text-white mt-1">{pub.title}</h4>
+                {pub.image && (
+                  <img src={pub.image} alt={pub.title} className="w-20 h-20 object-cover rounded-xl border border-white/10 shrink-0" />
+                )}
+                <div className="flex-1 space-y-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="text-[10px] font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded mr-2">
+                        {pub.conference} &bull; {pub.year}
+                      </span>
+                      <h4 className="text-sm font-bold text-white mt-1">{pub.title}</h4>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => {
+                          setEditingId(pub._id);
+                          setPubForm({ ...pub });
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-400 text-xs font-bold"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => deletePublication(pub._id)}
+                        className="px-2.5 py-1 rounded-lg bg-red-500/10 text-red-400 text-xs font-bold"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => {
-                        setEditingId(pub._id);
-                        setPubForm({ ...pub });
-                      }}
-                      className="px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-400 text-xs font-bold"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => deletePublication(pub._id)}
-                      className="px-2.5 py-1 rounded-lg bg-red-500/10 text-red-400 text-xs font-bold"
-                    >
-                      Delete
-                    </button>
-                  </div>
+                  {pub.doi && <p className="text-[11px] font-mono text-purple-300">DOI: {pub.doi}</p>}
+                  <p className="text-xs text-slate-400 line-clamp-2">{pub.description}</p>
                 </div>
-                <p className="text-xs text-slate-400">{pub.description}</p>
               </div>
             ))}
           </div>

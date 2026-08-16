@@ -78,9 +78,14 @@ export const PublicationsSection: React.FC = () => {
                     Published {pub.year}
                   </span>
                   {pub.doi && (
-                    <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
+                    <a 
+                      href={ensureAbsoluteUrl(pub.doi)} 
+                      target="_blank" 
+                      rel="noreferrer"
+                      className="text-xs font-mono text-slate-500 dark:text-slate-400 hover:text-purple-500 dark:hover:text-purple-400 transition-colors cursor-pointer"
+                    >
                       DOI: {pub.doi}
-                    </span>
+                    </a>
                   )}
                 </div>
 
