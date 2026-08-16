@@ -48,8 +48,8 @@ export const EventsSection: React.FC = () => {
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredEvents.map((item) => {
-              const isVideo = /\.(mp4|webm|ogg|mov)$/i.test(item.image);
+            {(filteredEvents || []).filter(Boolean).map((item) => {
+              const isVideo = Boolean(item?.image && typeof item.image === 'string' && /\.(mp4|webm|ogg|mov)$/i.test(item.image));
 
               return (
                 <div

@@ -21,7 +21,7 @@ export const MediaLightbox: React.FC = () => {
 
   if (!selectedMediaModal?.isOpen) return null;
 
-  const isVideo = /\.(mp4|webm|ogg|mov)$/i.test(selectedMediaModal.image);
+  const isVideo = Boolean(selectedMediaModal?.image && typeof selectedMediaModal.image === 'string' && /\.(mp4|webm|ogg|mov)$/i.test(selectedMediaModal.image));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10 animate-in fade-in duration-200">

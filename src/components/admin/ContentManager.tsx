@@ -753,8 +753,8 @@ export const ContentManager: React.FC = () => {
           </div>
 
           <div className="lg:col-span-7 grid sm:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto pr-1">
-            {data.events.map((ev) => {
-              const isVideo = /\.(mp4|webm|ogg|mov)$/i.test(ev.image);
+            {(data.events || []).filter(Boolean).map((ev) => {
+              const isVideo = Boolean(ev?.image && typeof ev.image === 'string' && /\.(mp4|webm|ogg|mov)$/i.test(ev.image));
               return (
                 <div
                   key={ev._id}
