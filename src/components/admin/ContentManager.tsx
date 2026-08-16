@@ -758,25 +758,66 @@ export const ContentManager: React.FC = () => {
               return (
                 <div
                   key={ev._id}
-                  className="rounded-2xl border border-white/10 bg-slate-900/70 overflow-hidden flex flex-col"
+                  className="rounded-2xl border border-white/10 bg-slate-900/70 overflow-hidden flex flex-col group relative"
                 >
-                  <div className="relative h-40 w-full shrink-0 bg-slate-950 overflow-hidden">
+                  {/* Image Container with Overlay Action Buttons */}
+                  <div className="relative h-32 w-full shrink-0 bg-slate-950 overflow-hidden">
                     {isVideo ? (
                       <video src={ev.image} muted loop playsInline className="w-full h-full object-cover" />
                     ) : (
                       <img src={ev.image} alt={ev.title} className="w-full h-full object-cover" />
                     )}
-                    <span className="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-950/80 text-purple-300">
+                    <span className="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-950/80 text-purple-300 backdrop-blur-md border border-purple-500/20">
                       {ev.category === 'events' ? 'Event' : ev.category === 'awards' ? 'Award' : 'Certificate'}
                     </span>
+
+                    {/* Top-Right Edit & Delete Action Badges */}
+                    <div className="absolute top-2 right-2 flex items-center gap-1.5 z-20">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingId(ev._id);
+                          setEventForm({
+                            title: ev.title,
+                            description: ev.description,
+                            image: ev.image,
+                            category: ev.category || 'events',
+                            date: ev.date || '',
+                            organization: ev.organization || '',
+                            credentialUrl: ev.credentialUrl || '',
+                          });
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold shadow-md shadow-blue-900/50 backdrop-blur-md transition-all flex items-center gap-1"
+                      >
+                        <Pencil className="w-3 h-3" />
+                        <span>Edit</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (window.confirm(`Delete "${ev.title}"?`)) {
+                            deleteEvent(ev._id);
+                          }
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white text-[11px] font-bold shadow-md shadow-red-900/50 backdrop-blur-md transition-all flex items-center gap-1"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        <span>Delete</span>
+                      </button>
+                    </div>
                   </div>
+
+                  {/* Card Body Details */}
                   <div className="p-4 space-y-2 flex-1 flex flex-col justify-between">
                     <div>
                       <h4 className="text-xs font-bold text-white line-clamp-1 mb-1">{ev.title}</h4>
                       <p className="text-[11px] text-slate-400 line-clamp-2">{ev.description}</p>
                     </div>
-                    <div className="flex justify-between pt-3 mt-2 border-t border-white/5 gap-2">
+                    <div className="flex justify-between pt-3 mt-1 border-t border-white/5 gap-2">
                       <button
+                        type="button"
                         onClick={() => {
                           setEditingId(ev._id);
                           setEventForm({
@@ -789,19 +830,22 @@ export const ContentManager: React.FC = () => {
                             credentialUrl: ev.credentialUrl || '',
                           });
                         }}
-                        className="flex-1 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-white text-xs font-bold transition-colors"
+                        className="flex-1 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-white text-xs font-bold transition-colors flex items-center justify-center gap-1"
                       >
-                        Edit
+                        <Pencil className="w-3 h-3" />
+                        <span>Edit</span>
                       </button>
                       <button
+                        type="button"
                         onClick={() => {
                           if (window.confirm(`Delete "${ev.title}"?`)) {
                             deleteEvent(ev._id);
                           }
                         }}
-                        className="flex-1 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white text-xs font-bold transition-colors"
+                        className="flex-1 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white text-xs font-bold transition-colors flex items-center justify-center gap-1"
                       >
-                        Delete
+                        <Trash2 className="w-3 h-3" />
+                        <span>Delete</span>
                       </button>
                     </div>
                   </div>
