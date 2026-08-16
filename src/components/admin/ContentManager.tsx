@@ -8,6 +8,7 @@ import {
   Plus, 
   Trash2, 
   Edit3, 
+  Pencil,
   Check, 
   Upload, 
   ExternalLink,
@@ -433,6 +434,35 @@ export const ContentManager: React.FC = () => {
                     <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-950/80 text-purple-300 border border-purple-500/30">
                       {proj.type}
                     </span>
+
+                    {/* Top-Right Edit & Delete Action Badges */}
+                    <div className="absolute top-2 right-2 flex items-center gap-1.5 z-20">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingId(proj._id);
+                          setProjectForm({ ...proj });
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-blue-500/20 hover:bg-blue-600 text-blue-300 hover:text-white text-[11px] font-bold border border-blue-500/30 backdrop-blur-md transition-all flex items-center gap-1 shadow-sm"
+                      >
+                        <Pencil className="w-3 h-3" />
+                        <span>Edit</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (window.confirm(`Delete "${proj.title}"?`)) {
+                            deleteProject(proj._id);
+                          }
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-red-500/20 hover:bg-red-600 text-red-300 hover:text-white text-[11px] font-bold border border-red-500/30 backdrop-blur-md transition-all flex items-center gap-1 shadow-sm"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        <span>Delete</span>
+                      </button>
+                    </div>
                   </div>
 
                   <div className="p-4 space-y-2">
@@ -800,7 +830,7 @@ export const ContentManager: React.FC = () => {
                           e.stopPropagation();
                           startEditEvent(ev);
                         }}
-                        className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold shadow-md shadow-blue-900/50 backdrop-blur-md transition-all flex items-center gap-1"
+                        className="px-2.5 py-1 rounded-lg bg-blue-500/20 hover:bg-blue-600 text-blue-300 hover:text-white text-[11px] font-bold border border-blue-500/30 backdrop-blur-md transition-all flex items-center gap-1 shadow-sm"
                       >
                         <Pencil className="w-3 h-3" />
                         <span>Edit</span>
@@ -813,7 +843,7 @@ export const ContentManager: React.FC = () => {
                             deleteEvent(ev._id);
                           }
                         }}
-                        className="px-2.5 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white text-[11px] font-bold shadow-md shadow-red-900/50 backdrop-blur-md transition-all flex items-center gap-1"
+                        className="px-2.5 py-1 rounded-lg bg-red-500/20 hover:bg-red-600 text-red-300 hover:text-white text-[11px] font-bold border border-red-500/30 backdrop-blur-md transition-all flex items-center gap-1 shadow-sm"
                       >
                         <Trash2 className="w-3 h-3" />
                         <span>Delete</span>
