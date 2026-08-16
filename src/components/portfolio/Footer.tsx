@@ -3,7 +3,7 @@ import { ArrowUp, Github, Linkedin, Facebook, Mail, Sparkles, Heart } from 'luci
 import { usePortfolio } from '../../context/PortfolioContext';
 
 export const Footer: React.FC = () => {
-  const { data } = usePortfolio();
+  const { data, isAdmin } = usePortfolio();
   const hero = data.hero;
 
   const scrollToTop = () => {
@@ -81,15 +81,19 @@ export const Footer: React.FC = () => {
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
           <p>&copy; {new Date().getFullYear()} Kha. Mo. Syeed Asif. All rights reserved.</p>
           <div className="flex items-center gap-4">
-            <a
-              href="https://portfolio-2-afjx.onrender.com/admin"
-              target="_blank"
-              rel="noreferrer"
-              className="text-slate-400 hover:text-purple-400 transition-colors"
-            >
-              Admin Dashboard
-            </a>
-            <span>&bull;</span>
+            {isAdmin && (
+            <>
+              <a
+                href="/admin"
+                target="_blank"
+                rel="noreferrer"
+                className="text-slate-400 hover:text-purple-400 transition-colors"
+              >
+                Admin Dashboard
+              </a>
+              <span>&bull;</span>
+            </>
+          )}
             <span className="flex items-center gap-1">
               Built with precision <Sparkles className="w-3 h-3 text-purple-400" />
             </span>

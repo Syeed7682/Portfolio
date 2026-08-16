@@ -144,13 +144,15 @@ export const Navbar: React.FC = () => {
             )}
 
             {/* Admin Panel Toggle */}
-            <button
-              onClick={() => setActiveView('admin')}
-              className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
-              title="Open Admin Dashboard & Customizer"
-            >
-              <LayoutDashboard className="w-5 h-5" />
-            </button>
+{isAdmin && (
+              <button
+                onClick={() => setActiveView('admin')}
+                className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
+                title="Open Admin Dashboard & Customizer"
+              >
+                <LayoutDashboard className="w-5 h-5" />
+              </button>
+            )}
 
             {/* Theme Toggle */}
             <button
@@ -202,16 +204,18 @@ export const Navbar: React.FC = () => {
             </div>
 
             <div className="pt-2 border-t border-slate-200 dark:border-white/10 flex flex-col gap-2">
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  setActiveView('admin');
-                }}
-                className="w-full py-2.5 px-4 rounded-xl bg-purple-600/20 text-purple-300 border border-purple-500/30 font-semibold text-xs flex items-center justify-center gap-2"
-              >
-                <Settings className="w-4 h-4 text-purple-400" />
-                Admin Dashboard & Live Customizer
-              </button>
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setActiveView('admin');
+                  }}
+                  className="w-full py-2.5 px-4 rounded-xl bg-purple-600/20 text-purple-300 border border-purple-500/30 font-semibold text-xs flex items-center justify-center gap-2"
+                >
+                  <Settings className="w-4 h-4 text-purple-400" />
+                  Admin Dashboard & Live Customizer
+                </button>
+              )}
 
               {data.cv.previewEnabled && (
                 <a
