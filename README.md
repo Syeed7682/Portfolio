@@ -2,8 +2,9 @@
 
 Welcome to the source code of my dynamic, full-stack personal portfolio! Designed to showcase projects, research publications, achievements, experience, and skills in an interactive, high-performance web experience.
 
-🌐 **Live Demo:** [[https://syeed-asif.pages.dev/](https://portfolio.syeed-asif.workers.dev/)
-⚙️ **Backend API:** [https://portfolio-2-afjx.onrender.com](https://portfolio-2-afjx.onrender.com)
+🌐 **Live Frontend:** [https://portfolio.syeed-asif.workers.dev](https://portfolio.syeed-asif.workers.dev/)  
+⚙️ **Backend API & Admin:** [https://portfolio-2-afjx.onrender.com](https://portfolio-2-afjx.onrender.com)  
+💚 **Health Check:** [https://portfolio-2-afjx.onrender.com/health](https://portfolio-2-afjx.onrender.com/health)
 
 ---
 
@@ -23,10 +24,31 @@ Welcome to the source code of my dynamic, full-stack personal portfolio! Designe
 
 ---
 
+## 🏗️ System Architecture
+
+```
+Admin Panel (Render) ──► Express API ──► MongoDB Atlas
+                                              │
+Frontend (Cloudflare Workers) ◄───── reads ───┘
+```
+
+| Layer | Service | URL | Role |
+|-------|---------|-----|------|
+| **Backend** | Render | `portfolio-2-afjx.onrender.com` | Express + MongoDB + Admin Panel — all data writes happen here |
+| **Frontend** | Cloudflare Workers | `portfolio.syeed-asif.workers.dev` | React SPA — reads & displays data from Render API |
+| **Database** | MongoDB Atlas | — | Persistent data store for all portfolio content |
+| **Monitoring** | UptimeRobot | `/health` endpoint | Pings every 5 min to prevent Render cold starts |
+
+> **How it works:** The Admin Panel lives on Render. Any changes made in Admin (projects, publications, skills, etc.) write directly to MongoDB. The Cloudflare Workers frontend fetches and displays that data via the Render API.
+
+---
+
 ## 🛠️ Technology Stack
 
 - **Frontend:** React 19, TypeScript, Vite, Tailwind CSS, Motion, Lucide React, Canvas Confetti
+- **Frontend Hosting:** Cloudflare Workers
 - **Backend:** Node.js, Express.js, Nodemailer, Resend SDK
+- **Backend Hosting:** Render
 - **Database:** MongoDB Atlas
 - **Monitoring:** UptimeRobot (pings `/health` every 5m)
 
@@ -74,7 +96,9 @@ Welcome to the source code of my dynamic, full-stack personal portfolio! Designe
    npm run dev
    ```
 
-### ☁️ Production Deployment (Render)
+### ☁️ Production Deployment
+
+#### Backend — Render (API + Admin Panel + MongoDB)
 
 1. Connect your GitHub repository to [Render](https://render.com).
 2. Use the following **Build Command**:
@@ -86,7 +110,22 @@ Welcome to the source code of my dynamic, full-stack personal portfolio! Designe
    npm start
    ```
 4. Copy your local `.env` values into the Render Environment Variables tab.
-5. Render will now start the Express server which serves the built React app (`dist/`) and powers the API concurrently.
+5. Render starts the Express server which serves the Admin Panel, powers the API, and connects to MongoDB.
+
+#### Frontend — Cloudflare Workers (Public Portfolio)
+
+1. Install [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/).
+2. Build the frontend:
+   ```bash
+   npm run build
+   ```
+3. Deploy to Cloudflare Workers:
+   ```bash
+   npx wrangler deploy
+   ```
+4. The Workers frontend reads all data from the Render backend API (`VITE_API_BASE` in `.env`).
+
+> **Note:** Admin functionality is only available on the Render deployment. The Workers frontend redirects admin requests to the Render URL.
 
 ---
 

@@ -139,27 +139,71 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [toast, setToast] = useState<ToastInfo | null>(null);
   const [selectedMediaModal, setSelectedMediaModal] = useState<PortfolioContextType['selectedMediaModal']>(null);
 
-  // Fetch live data from MongoDB on mount
+  // Fetch live data from MongoDB on mount (stale-while-revalidate strategy)
+  const API_CACHE_KEY = 'syeed_portfolio_api_cache';
+
   useEffect(() => {
+    // 1. Try to load cached API data instantly (skip loading screen on repeat visits)
+    try {
+      const cached = localStorage.getItem(API_CACHE_KEY);
+      if (cached) {
+        const { data: cachedData, timestamp } = JSON.parse(cached);
+        const cacheAge = Date.now() - timestamp;
+        // Use cache if less than 30 minutes old
+        if (cacheAge < 30 * 60 * 1000 && cachedData) {
+          setData(prev => ({
+            ...prev,
+            projects: cachedData.projects?.length ? cachedData.projects : prev.projects,
+            publications: cachedData.publications?.length ? cachedData.publications : prev.publications,
+            events: cachedData.events?.length ? cachedData.events : prev.events,
+            experience: cachedData.experience?.length ? cachedData.experience : prev.experience,
+          }));
+          setIsLoadingData(false);
+          console.log('[Portfolio] Loaded from cache instantly ⚡ (age: ' + Math.round(cacheAge / 1000) + 's)');
+        }
+      }
+    } catch (e) {
+      console.warn('[Cache] Could not read API cache:', e);
+    }
+
+    // 2. Always fetch fresh data from Render in background
     const fetchLiveData = async () => {
       try {
         const res = await fetch(`${API_BASE}/api/portfolio-data`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const live = await res.json();
 
+        const mergedEvents = [
+          ...(live.events || []),
+          ...(live.certs || []),
+        ];
+
         setData(prev => ({
           ...prev,
           projects: live.projects?.length ? live.projects : prev.projects,
           publications: live.publications?.length ? live.publications : prev.publications,
-          events: [
-            ...(live.events || []),
-            ...(live.certs || []),
-          ].length ? [...(live.events || []), ...(live.certs || [])] : prev.events,
+          events: mergedEvents.length ? mergedEvents : prev.events,
           experience: live.experience?.length ? live.experience : prev.experience,
         }));
+
+        // Cache the fresh data for next visit
+        try {
+          localStorage.setItem(API_CACHE_KEY, JSON.stringify({
+            data: {
+              projects: live.projects || [],
+              publications: live.publications || [],
+              events: mergedEvents,
+              experience: live.experience || [],
+            },
+            timestamp: Date.now(),
+          }));
+        } catch (e) {
+          console.warn('[Cache] Could not save API cache:', e);
+        }
+
         console.log('[Portfolio] Live data loaded from MongoDB ✓');
       } catch (err) {
-        console.warn('[Portfolio] Could not fetch live data, using local defaults:', err);
+        console.warn('[Portfolio] Could not fetch live data, using cached/local defaults:', err);
       } finally {
         setIsLoadingData(false);
       }
