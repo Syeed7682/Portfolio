@@ -135,7 +135,9 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [adminPin, setAdminPin] = useState<string>(() => {
     return localStorage.getItem('syeed_admin_pin') || 'asif2026';
   });
-  const [activeView, setActiveView] = useState<'portfolio' | 'admin'>('portfolio');
+  const [activeView, setActiveView] = useState<'portfolio' | 'admin'>(() => {
+    return window.location.pathname === '/admin' ? 'admin' : 'portfolio';
+  });
   const [toast, setToast] = useState<ToastInfo | null>(null);
   const [selectedMediaModal, setSelectedMediaModal] = useState<PortfolioContextType['selectedMediaModal']>(null);
 

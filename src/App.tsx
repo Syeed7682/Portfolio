@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { PortfolioProvider, usePortfolio } from './context/PortfolioContext';
 import { Navbar } from './components/portfolio/Navbar';
 import { HeroSection } from './components/portfolio/HeroSection';
@@ -10,8 +10,10 @@ import { EventsSection } from './components/portfolio/EventsSection';
 import { ExperienceSection } from './components/portfolio/ExperienceSection';
 import { ContactSection } from './components/portfolio/ContactSection';
 import { Footer } from './components/portfolio/Footer';
+import { AdminDashboard } from './components/admin/AdminDashboard';
+import { AdminLoginModal } from './components/admin/AdminLoginModal';
 import { MediaLightbox } from './components/common/MediaLightbox';
-import { CheckCircle, AlertCircle, Info, Loader2 } from 'lucide-react';
+import { CheckCircle, AlertCircle, Info, Sparkles, Loader2 } from 'lucide-react';
 
 const LoadingScreen: React.FC = () => (
   <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-4 text-white">
@@ -40,7 +42,8 @@ const LoadingScreen: React.FC = () => (
 );
 
 const MainPortfolioView: React.FC = () => {
-  const { data, toast, isLoadingData } = usePortfolio();
+  const { data, activeView, setActiveView, isAdmin, toast, isLoadingData } = usePortfolio();
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   if (isLoadingData) return <LoadingScreen />;
 
@@ -62,6 +65,65 @@ const MainPortfolioView: React.FC = () => {
       default:             return null;
     }
   };
+
+  if (activeView === 'admin') {
+    // If somehow accessed on workers domain, redirect to render
+    if (window.location.hostname.includes('workers.dev')) {
+      window.location.href = 'https://portfolio-2-afjx.onrender.com/admin';
+      return <LoadingScreen />;
+    }
+
+    if (!isAdmin) {
+      return (
+        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-white text-center">
+          <div className="max-w-md w-full p-8 rounded-3xl bg-slate-900 border border-white/10 shadow-2xl space-y-6">
+            <div className="w-14 h-14 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-400 mx-auto">
+              <Sparkles className="w-7 h-7" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold">Admin Authentication</h2>
+              <p className="text-xs text-slate-400">
+                Sign in with the authorized account (
+                <code className="text-purple-400">kmsyeedasif@gmail.com</code>
+                ) or use Quick Access to configure the portfolio.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowLoginModal(true)}
+              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-xs shadow-lg shadow-purple-500/25 hover:scale-105 transition-all"
+            >
+              Open Admin Sign-In Portal
+            </button>
+            <button
+              onClick={() => {
+                setActiveView('portfolio');
+                // clear path if it was /admin
+                if (window.location.pathname === '/admin') {
+                  window.history.pushState({}, '', '/');
+                }
+              }}
+              className="text-xs text-slate-400 hover:text-white transition-colors"
+            >
+              &larr; Back to Portfolio
+            </button>
+          </div>
+          <AdminLoginModal
+            isOpen={showLoginModal}
+            onClose={() => setShowLoginModal(false)}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <AdminDashboard onBackToPortfolio={() => {
+        setActiveView('portfolio');
+        if (window.location.pathname === '/admin') {
+          window.history.pushState({}, '', '/');
+        }
+      }} />
+    );
+  }
 
   return (
     <div className={`min-h-screen transition-colors duration-300 relative ${
