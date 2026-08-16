@@ -183,6 +183,20 @@ export const ContentManager: React.FC = () => {
     });
   };
 
+  const startEditEvent = (ev: EventAchievement) => {
+    setEditingId(ev._id);
+    setEventForm({
+      title: ev.title || '',
+      description: ev.description || '',
+      image: ev.image || '',
+      category: ev.category || 'events',
+      date: ev.date || '',
+      organization: ev.organization || '',
+      credentialUrl: ev.credentialUrl || '',
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // Submit Experience
   const handleExpSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -755,10 +769,17 @@ export const ContentManager: React.FC = () => {
           <div className="lg:col-span-7 grid sm:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto pr-1">
             {(data.events || []).filter(Boolean).map((ev) => {
               const isVideo = Boolean(ev?.image && typeof ev.image === 'string' && /\.(mp4|webm|ogg|mov)$/i.test(ev.image));
+              const isCurrentlyEditing = editingId === ev._id;
+
               return (
                 <div
                   key={ev._id}
-                  className="rounded-2xl border border-white/10 bg-slate-900/70 overflow-hidden flex flex-col group relative"
+                  onClick={() => startEditEvent(ev)}
+                  className={`rounded-2xl border overflow-hidden flex flex-col group relative cursor-pointer transition-all ${
+                    isCurrentlyEditing 
+                      ? 'border-purple-500 ring-2 ring-purple-500/50 bg-slate-900/90' 
+                      : 'border-white/10 bg-slate-900/70 hover:border-purple-500/40'
+                  }`}
                 >
                   {/* Image Container with Overlay Action Buttons */}
                   <div className="relative h-32 w-full shrink-0 bg-slate-950 overflow-hidden">
@@ -777,16 +798,7 @@ export const ContentManager: React.FC = () => {
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setEditingId(ev._id);
-                          setEventForm({
-                            title: ev.title,
-                            description: ev.description,
-                            image: ev.image,
-                            category: ev.category || 'events',
-                            date: ev.date || '',
-                            organization: ev.organization || '',
-                            credentialUrl: ev.credentialUrl || '',
-                          });
+                          startEditEvent(ev);
                         }}
                         className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold shadow-md shadow-blue-900/50 backdrop-blur-md transition-all flex items-center gap-1"
                       >
@@ -818,26 +830,19 @@ export const ContentManager: React.FC = () => {
                     <div className="flex justify-between pt-3 mt-1 border-t border-white/5 gap-2">
                       <button
                         type="button"
-                        onClick={() => {
-                          setEditingId(ev._id);
-                          setEventForm({
-                            title: ev.title,
-                            description: ev.description,
-                            image: ev.image,
-                            category: ev.category || 'events',
-                            date: ev.date || '',
-                            organization: ev.organization || '',
-                            credentialUrl: ev.credentialUrl || '',
-                          });
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          startEditEvent(ev);
                         }}
                         className="flex-1 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-white text-xs font-bold transition-colors flex items-center justify-center gap-1"
                       >
                         <Pencil className="w-3 h-3" />
-                        <span>Edit</span>
+                        <span>{isCurrentlyEditing ? 'Editing...' : 'Edit'}</span>
                       </button>
                       <button
                         type="button"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           if (window.confirm(`Delete "${ev.title}"?`)) {
                             deleteEvent(ev._id);
                           }
