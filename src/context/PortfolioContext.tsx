@@ -16,7 +16,7 @@ import {
 import { initialPortfolioData } from '../data/initialData';
 import confetti from 'canvas-confetti';
 
-const API_BASE = 'https://portfolio-2-afjx.onrender.com';
+const API_BASE = import.meta.env.VITE_API_BASE || 'https://portfolio-2-afjx.onrender.com';
 
 interface ToastInfo {
   id: string;
