@@ -288,6 +288,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [data.theme, data.hero, data.about, data.cv, data.sections, data.skillCategories]);
 
   // Apply dark mode class to document
+  // Apply dark mode class to document
   useEffect(() => {
     const isDark = data.theme.mode === 'dark';
     if (isDark) {
@@ -296,6 +297,36 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       document.documentElement.classList.remove('dark');
     }
   }, [data.theme.mode]);
+
+  // Poll for live updates to reflect admin changes instantly
+  useEffect(() => {
+    const pollInterval = setInterval(() => {
+      fetch(`${API_BASE}/api/portfolio-data`)
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.json();
+        })
+        .then(live => {
+          setData(prev => ({
+            ...prev,
+            projects: live.projects?.length ? live.projects : prev.projects,
+            publications: live.publications?.length ? live.publications : prev.publications,
+            events: live.events?.length ? live.events : prev.events,
+            experience: live.experience?.length ? live.experience : prev.experience,
+            theme: live.config?.theme || prev.theme,
+            hero: live.config?.hero || prev.hero,
+            about: live.config?.about || prev.about,
+            cv: live.config?.cv || prev.cv,
+            sections: live.config?.sections || prev.sections,
+            skillCategories: live.config?.skillCategories || prev.skillCategories,
+          }));
+        })
+        .catch(err => {
+          console.warn('[Portfolio] Poll fetch failed:', err);
+        });
+    }, 5000);
+    return () => clearInterval(pollInterval);
+  }, []);
 
   const showToast = (message: string, type: 'success' | 'info' | 'error' = 'success') => {
     const id = Date.now().toString();
