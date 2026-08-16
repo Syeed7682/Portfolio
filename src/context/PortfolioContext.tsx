@@ -144,6 +144,20 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Fetch live data from MongoDB on mount (stale-while-revalidate strategy)
   const API_CACHE_KEY = 'syeed_portfolio_api_cache';
 
+  // Helper to persist global config (hero, about, theme, sections, skillCategories, cv) to MongoDB
+  const saveConfigToBackend = async (partialConfig: Record<string, any>) => {
+    try {
+      await fetch(`${API_BASE}/api/config`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(partialConfig),
+      });
+      console.log('[Portfolio] Saved config to MongoDB ✓');
+    } catch (err) {
+      console.warn('[API] Config save to MongoDB failed:', err);
+    }
+  };
+
   useEffect(() => {
     // 1. Try to load cached API data instantly (skip loading screen on repeat visits)
     try {
@@ -159,6 +173,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             publications: cachedData.publications?.length ? cachedData.publications : prev.publications,
             events: cachedData.events?.length ? cachedData.events : prev.events,
             experience: cachedData.experience?.length ? cachedData.experience : prev.experience,
+            ...(cachedData.config || {}),
           }));
           setIsLoadingData(false);
           console.log('[Portfolio] Loaded from cache instantly ⚡ (age: ' + Math.round(cacheAge / 1000) + 's)');
@@ -180,12 +195,20 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           ...(live.certs || []),
         ];
 
+        const liveConfig = live.config || {};
+
         setData(prev => ({
           ...prev,
           projects: live.projects?.length ? live.projects : prev.projects,
           publications: live.publications?.length ? live.publications : prev.publications,
           events: mergedEvents.length ? mergedEvents : prev.events,
           experience: live.experience?.length ? live.experience : prev.experience,
+          theme: liveConfig.theme || prev.theme,
+          hero: liveConfig.hero || prev.hero,
+          about: liveConfig.about || prev.about,
+          cv: liveConfig.cv || prev.cv,
+          sections: liveConfig.sections || prev.sections,
+          skillCategories: liveConfig.skillCategories || prev.skillCategories,
         }));
 
         // Cache the fresh data for next visit
@@ -196,6 +219,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
               publications: live.publications || [],
               events: mergedEvents,
               experience: live.experience || [],
+              config: liveConfig,
             },
             timestamp: Date.now(),
           }));
@@ -277,42 +301,59 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   // ─── Theme / Layout Updaters ─────────────────────────────────────────
   const updateTheme = (newTheme: Partial<SiteTheme>) => {
-    setData(prev => ({ ...prev, theme: { ...prev.theme, ...newTheme } }));
+    setData(prev => {
+      const updatedTheme = { ...prev.theme, ...newTheme };
+      saveConfigToBackend({ theme: updatedTheme });
+      return { ...prev, theme: updatedTheme };
+    });
     showToast('Theme updated in real-time!', 'success');
   };
 
   const updateHero = (heroUpdates: Partial<HeroConfig>) => {
-    setData(prev => ({ ...prev, hero: { ...prev.hero, ...heroUpdates } }));
+    setData(prev => {
+      const updatedHero = { ...prev.hero, ...heroUpdates };
+      saveConfigToBackend({ hero: updatedHero });
+      return { ...prev, hero: updatedHero };
+    });
     showToast('Hero section updated!', 'success');
   };
 
   const updateAbout = (aboutUpdates: Partial<AboutConfig>) => {
-    setData(prev => ({ ...prev, about: { ...prev.about, ...aboutUpdates } }));
+    setData(prev => {
+      const updatedAbout = { ...prev.about, ...aboutUpdates };
+      saveConfigToBackend({ about: updatedAbout });
+      return { ...prev, about: updatedAbout };
+    });
     showToast('About section updated!', 'success');
   };
 
   const reorderSections = (newSections: SectionConfig[]) => {
-    setData(prev => ({ ...prev, sections: newSections }));
+    setData(prev => {
+      saveConfigToBackend({ sections: newSections });
+      return { ...prev, sections: newSections };
+    });
     showToast('Layout order updated!', 'info');
   };
 
   const toggleSectionVisibility = (sectionId: string) => {
-    setData(prev => ({
-      ...prev,
-      sections: prev.sections.map(sec =>
+    setData(prev => {
+      const newSections = prev.sections.map(sec =>
         sec.id === sectionId ? { ...sec, isVisible: !sec.isVisible } : sec
-      ),
-    }));
+      );
+      saveConfigToBackend({ sections: newSections });
+      return { ...prev, sections: newSections };
+    });
     showToast('Section visibility toggled', 'info');
   };
 
   const updateSectionHeading = (sectionId: string, updates: Partial<SectionConfig>) => {
-    setData(prev => ({
-      ...prev,
-      sections: prev.sections.map(sec =>
+    setData(prev => {
+      const newSections = prev.sections.map(sec =>
         sec.id === sectionId ? { ...sec, ...updates } : sec
-      ),
-    }));
+      );
+      saveConfigToBackend({ sections: newSections });
+      return { ...prev, sections: newSections };
+    });
     showToast('Section header updated', 'success');
   };
 
@@ -504,7 +545,10 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   // ─── Skills ──────────────────────────────────────────────────────────
   const updateSkillCategories = (categories: SkillCategory[]) => {
-    setData(prev => ({ ...prev, skillCategories: categories }));
+    setData(prev => {
+      saveConfigToBackend({ skillCategories: categories });
+      return { ...prev, skillCategories: categories };
+    });
     showToast('Skills catalog updated', 'success');
   };
 
@@ -551,7 +595,11 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   // ─── CV Updater ───────────────────────────────────────────────────────
   const updateCV = (cvUpdates: Partial<CVMetadata>) => {
-    setData(prev => ({ ...prev, cv: { ...prev.cv, ...cvUpdates } }));
+    setData(prev => {
+      const updatedCV = { ...prev.cv, ...cvUpdates };
+      saveConfigToBackend({ cv: updatedCV });
+      return { ...prev, cv: updatedCV };
+    });
     showToast('CV & Resume information updated!', 'success');
   };
 

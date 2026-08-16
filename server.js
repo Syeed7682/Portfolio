@@ -59,15 +59,16 @@ app.get('/api/portfolio-data', async (req, res) => {
             return res.status(500).json({ error: "DB not connected" });
         }
 
-        const [events, certs, projects, publications, experience] = await Promise.all([
+        const [events, certs, projects, publications, experience, configDoc] = await Promise.all([
             eventsCollection.find().sort({ _id: -1 }).toArray(),
             certCollection.find().sort({ _id: -1 }).toArray(),
             projectsCollection.find().sort({ _id: -1 }).toArray(),
             publicationsCollection.find().sort({ _id: -1 }).toArray(),
-            experienceCollection ? experienceCollection.find().sort({ _id: -1 }).toArray() : Promise.resolve([])
+            experienceCollection ? experienceCollection.find().sort({ _id: -1 }).toArray() : Promise.resolve([]),
+            configCollection ? configCollection.findOne({ _id: 'global' }) : Promise.resolve(null)
         ]);
 
-        portfolioDataCache = { events, certs, projects, publications, experience };
+        portfolioDataCache = { events, certs, projects, publications, experience, config: configDoc };
         res.json(portfolioDataCache);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -82,11 +83,41 @@ app.use((req, res, next) => {
             path.startsWith('/api/events') || 
             path.startsWith('/api/certificates') || 
             path.startsWith('/api/projects') ||
-            path.startsWith('/api/experience')) {
+            path.startsWith('/api/experience') ||
+            path.startsWith('/api/config')) {
             clearCache();
         }
     }
     next();
+});
+
+// Site Configuration API
+app.get('/api/config', async (req, res) => {
+    try {
+        if (!configCollection) return res.status(500).json({ error: "DB not connected" });
+        const config = await configCollection.findOne({ _id: 'global' });
+        res.json(config || {});
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.put('/api/config', async (req, res) => {
+    try {
+        if (!configCollection) return res.status(500).json({ error: "DB not connected" });
+        const updateData = { ...req.body, updatedAt: new Date().toISOString() };
+        delete updateData._id;
+
+        await configCollection.updateOne(
+            { _id: 'global' },
+            { $set: updateData },
+            { upsert: true }
+        );
+        clearCache();
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Publications API
@@ -609,6 +640,7 @@ let publicationsCollection;
 let messagesCollection;
 let cvCollection;
 let experienceCollection;
+let configCollection;
 
 async function connectDB() {
     try {
@@ -622,6 +654,7 @@ async function connectDB() {
         messagesCollection = db.collection("messages");
         cvCollection = db.collection("cv");
         experienceCollection = db.collection("experience");
+        configCollection = db.collection("site_config");
 
         // Migration: Add existing projects if empty
         const projectCount = await projectsCollection.countDocuments();
