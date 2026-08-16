@@ -11,6 +11,7 @@ import {
   FileCode2
 } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
+import { ensureAbsoluteUrl } from '../../utils/urlUtils';
 
 export const PublicationsSection: React.FC = () => {
   const { data, showToast } = usePortfolio();
@@ -103,7 +104,7 @@ export const PublicationsSection: React.FC = () => {
                 <div className="flex flex-wrap items-center gap-3 pt-3">
                   {pub.link && (
                     <a
-                      href={pub.link}
+                      href={ensureAbsoluteUrl(pub.link)}
                       target="_blank"
                       rel="noreferrer"
                       className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-950 text-white dark:bg-white dark:text-slate-950 text-xs font-bold hover:bg-purple-600 dark:hover:bg-purple-400 dark:hover:text-slate-950 transition-all shadow-sm"

@@ -14,6 +14,7 @@ import {
   Bot
 } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
+import { ensureAbsoluteUrl } from '../../utils/urlUtils';
 import { CvHoverPopup } from '../common/CvHoverPopup';
 
 export const HeroSection: React.FC = () => {
@@ -156,7 +157,7 @@ export const HeroSection: React.FC = () => {
             <div className="flex items-center justify-center lg:justify-start gap-4 pt-6 text-slate-500 dark:text-slate-400">
               {hero.githubUrl && (
                 <a
-                  href={hero.githubUrl}
+                  href={ensureAbsoluteUrl(hero.githubUrl)}
                   target="_blank"
                   rel="noreferrer"
                   className="w-8 h-8 flex items-center justify-center hover:text-slate-900 dark:hover:text-white transition-colors"
@@ -167,7 +168,7 @@ export const HeroSection: React.FC = () => {
               )}
               {hero.linkedinUrl && (
                 <a
-                  href={hero.linkedinUrl}
+                  href={ensureAbsoluteUrl(hero.linkedinUrl)}
                   target="_blank"
                   rel="noreferrer"
                   className="w-8 h-8 flex items-center justify-center hover:text-[#0a66c2] transition-colors"
@@ -178,7 +179,7 @@ export const HeroSection: React.FC = () => {
               )}
               {hero.facebookUrl && (
                 <a
-                  href={hero.facebookUrl}
+                  href={ensureAbsoluteUrl(hero.facebookUrl)}
                   target="_blank"
                   rel="noreferrer"
                   className="w-8 h-8 flex items-center justify-center hover:text-[#1877f2] transition-colors"

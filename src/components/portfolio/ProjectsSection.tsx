@@ -11,6 +11,7 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
+import { ensureAbsoluteUrl } from '../../utils/urlUtils';
 
 export const ProjectsSection: React.FC = () => {
   const { data, openMediaModal } = usePortfolio();
@@ -166,7 +167,7 @@ export const ProjectsSection: React.FC = () => {
                     <div className="flex items-center gap-3">
                       {proj.githubUrl && (
                         <a
-                          href={proj.githubUrl}
+                          href={ensureAbsoluteUrl(proj.githubUrl)}
                           target="_blank"
                           rel="noreferrer"
                           className="text-slate-500 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white transition-colors"
@@ -177,7 +178,7 @@ export const ProjectsSection: React.FC = () => {
                       )}
                       {proj.link && (
                         <a
-                          href={proj.link}
+                          href={ensureAbsoluteUrl(proj.link)}
                           target="_blank"
                           rel="noreferrer"
                           className="text-slate-500 hover:text-purple-400 dark:text-slate-400 dark:hover:text-purple-300 transition-colors"
@@ -189,7 +190,7 @@ export const ProjectsSection: React.FC = () => {
                     </div>
 
                     <a
-                      href={proj.link || proj.githubUrl || '#'}
+                      href={ensureAbsoluteUrl(proj.link || proj.githubUrl || '#')}
                       target="_blank"
                       rel="noreferrer"
                       className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-pink-500 dark:hover:text-pink-400 transition-colors"
