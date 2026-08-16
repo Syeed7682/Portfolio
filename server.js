@@ -31,6 +31,18 @@ const clearCache = () => {
     portfolioDataCache = null;
 };
 
+const safeIdFilter = (idStr) => {
+    if (!idStr) return { _id: idStr };
+    try {
+        if (ObjectId.isValid(idStr) && String(new ObjectId(idStr)) === String(idStr)) {
+            return { $or: [{ _id: new ObjectId(idStr) }, { _id: String(idStr) }] };
+        }
+    } catch (e) {
+        // Fallback to string matching
+    }
+    return { _id: String(idStr) };
+};
+
 // Combined Portfolio Data API (with caching)
 app.get('/api/portfolio-data', async (req, res) => {
     try {
@@ -107,20 +119,22 @@ app.post('/api/publications', async (req, res) => {
 app.delete('/api/publications/:id', async (req, res) => {
     try {
         if (!publicationsCollection) return res.status(500).json({ error: "DB not connected" });
-        const result = await publicationsCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+        const result = await publicationsCollection.deleteOne(safeIdFilter(req.params.id));
         res.json(result);
     } catch (err) {
-        res.status(500).json({ message: 'Error' });
+        res.status(500).json({ message: 'Error', error: err.message });
     }
 });
 
 app.put('/api/publications/:id', async (req, res) => {
     try {
         if (!publicationsCollection) return res.status(500).json({ error: "DB not connected" });
-        const { title, description, link, authors, conference, year } = req.body;
+        const { title, description, link, authors, conference, year, doi, image } = req.body;
+        const updateData = { title, description, link, authors, conference, year, doi, updatedAt: new Date().toISOString() };
+        if (image !== undefined && image !== null) updateData.image = image;
         const result = await publicationsCollection.updateOne(
-            { _id: new ObjectId(req.params.id) },
-            { $set: { title, description, link, authors, conference, year, updatedAt: new Date().toISOString() } }
+            safeIdFilter(req.params.id),
+            { $set: updateData }
         );
         res.json(result);
     } catch (error) {
@@ -162,10 +176,10 @@ app.post('/api/events', async (req, res) => {
 app.delete('/api/events/:id', async (req, res) => {
     try {
         if (!eventsCollection) return res.status(500).json({ error: "DB not connected" });
-        const result = await eventsCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+        const result = await eventsCollection.deleteOne(safeIdFilter(req.params.id));
         res.json(result);
     } catch (err) {
-        res.status(500).json({ message: 'Error' });
+        res.status(500).json({ message: 'Error', error: err.message });
     }
 });
 
@@ -186,7 +200,7 @@ app.put('/api/events/:id', async (req, res) => {
             updateData.image = image;
         }
         const result = await eventsCollection.updateOne(
-            { _id: new ObjectId(req.params.id) },
+            safeIdFilter(req.params.id),
             { $set: updateData }
         );
         res.json(result);
@@ -229,10 +243,10 @@ app.post('/api/certificates', async (req, res) => {
 app.delete('/api/certificates/:id', async (req, res) => {
     try {
         if (!certCollection) return res.status(500).json({ error: "DB not connected" });
-        const result = await certCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+        const result = await certCollection.deleteOne(safeIdFilter(req.params.id));
         res.json(result);
     } catch (err) {
-        res.status(500).json({ message: 'Error' });
+        res.status(500).json({ message: 'Error', error: err.message });
     }
 });
 
@@ -253,7 +267,7 @@ app.put('/api/certificates/:id', async (req, res) => {
             updateData.image = image;
         }
         const result = await certCollection.updateOne(
-            { _id: new ObjectId(req.params.id) },
+            safeIdFilter(req.params.id),
             { $set: updateData }
         );
         res.json(result);
@@ -294,10 +308,10 @@ app.post('/api/projects', async (req, res) => {
 app.delete('/api/projects/:id', async (req, res) => {
     try {
         if (!projectsCollection) return res.status(500).json({ error: "DB not connected" });
-        const result = await projectsCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+        const result = await projectsCollection.deleteOne(safeIdFilter(req.params.id));
         res.json(result);
     } catch (err) {
-        res.status(500).json({ message: 'Error' });
+        res.status(500).json({ message: 'Error', error: err.message });
     }
 });
 
@@ -310,7 +324,7 @@ app.put('/api/projects/:id', async (req, res) => {
             updateData.image = image;
         }
         const result = await projectsCollection.updateOne(
-            { _id: new ObjectId(req.params.id) },
+            safeIdFilter(req.params.id),
             { $set: updateData }
         );
         res.json(result);
@@ -352,10 +366,10 @@ app.post('/api/experience', async (req, res) => {
 app.delete('/api/experience/:id', async (req, res) => {
     try {
         if (!experienceCollection) return res.status(500).json({ error: "DB not connected" });
-        const result = await experienceCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+        const result = await experienceCollection.deleteOne(safeIdFilter(req.params.id));
         res.json(result);
     } catch (err) {
-        res.status(500).json({ message: 'Error' });
+        res.status(500).json({ message: 'Error', error: err.message });
     }
 });
 
@@ -368,7 +382,7 @@ app.put('/api/experience/:id', async (req, res) => {
             updateData.image = image;
         }
         const result = await experienceCollection.updateOne(
-            { _id: new ObjectId(req.params.id) },
+            safeIdFilter(req.params.id),
             { $set: updateData }
         );
         res.json(result);
