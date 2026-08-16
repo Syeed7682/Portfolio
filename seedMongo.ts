@@ -15,6 +15,7 @@ async function seed() {
   await db.collection('projects').deleteMany({});
   await db.collection('publications').deleteMany({});
   await db.collection('events').deleteMany({});
+  await db.collection('achievements').deleteMany({});
   await db.collection('certificates').deleteMany({});
   
   console.log('Inserting new projects...');
@@ -35,7 +36,9 @@ async function seed() {
     const certs = initialPortfolioData.events.filter(e => e.category !== 'events');
     
     if (events.length) {
-      await db.collection('events').insertMany(events.map(({ _id, ...rest }) => rest));
+      const eventsToInsert = events.map(({ _id, ...rest }) => rest);
+      await db.collection('events').insertMany(eventsToInsert);
+      await db.collection('achievements').insertMany(eventsToInsert);
     }
     if (certs.length) {
       await db.collection('certificates').insertMany(certs.map(({ _id, ...rest }) => rest));

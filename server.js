@@ -134,17 +134,13 @@ app.get('/api/publications', async (req, res) => {
 app.post('/api/publications', async (req, res) => {
     try {
         if (!publicationsCollection) return res.status(500).json({ error: "DB not connected" });
-        const { title, description, link, authors, conference, year } = req.body;
-        const result = await publicationsCollection.insertOne({
-            title,
-            description,
-            link,
-            authors,
-            conference,
-            year,
-            createdAt: new Date().toISOString()
-        });
-        res.status(201).json(result);
+        const doc = {
+            ...req.body,
+            createdAt: req.body.createdAt || new Date().toISOString()
+        };
+        delete doc._id;
+        const result = await publicationsCollection.insertOne(doc);
+        res.status(201).json({ ...doc, _id: String(result.insertedId) });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -163,9 +159,8 @@ app.delete('/api/publications/:id', async (req, res) => {
 app.put('/api/publications/:id', async (req, res) => {
     try {
         if (!publicationsCollection) return res.status(500).json({ error: "DB not connected" });
-        const { title, description, link, authors, conference, year, doi, image } = req.body;
-        const updateData = { title, description, link, authors, conference, year, doi, updatedAt: new Date().toISOString() };
-        if (image !== undefined && image !== null) updateData.image = image;
+        const updateData = { ...req.body, updatedAt: new Date().toISOString() };
+        delete updateData._id;
         const result = await publicationsCollection.updateOne(
             safeIdFilter(req.params.id),
             { $set: updateData }
@@ -190,18 +185,14 @@ app.get('/api/events', async (req, res) => {
 app.post('/api/events', async (req, res) => {
     try {
         if (!eventsCollection) return res.status(500).json({ error: "DB not connected" });
-        const { title, description, image, category, date, organization, credentialUrl } = req.body;
-        const result = await eventsCollection.insertOne({
-            title,
-            description,
-            image: image || '',
-            category: category || 'events',
-            date: date || '',
-            organization: organization || '',
-            credentialUrl: credentialUrl || '',
-            createdAt: new Date().toISOString()
-        });
-        res.status(201).json(result);
+        const doc = {
+            ...req.body,
+            category: req.body.category || 'events',
+            createdAt: req.body.createdAt || new Date().toISOString()
+        };
+        delete doc._id;
+        const result = await eventsCollection.insertOne(doc);
+        res.status(201).json({ ...doc, _id: String(result.insertedId) });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -220,19 +211,8 @@ app.delete('/api/events/:id', async (req, res) => {
 app.put('/api/events/:id', async (req, res) => {
     try {
         if (!eventsCollection) return res.status(500).json({ error: "DB not connected" });
-        const { title, description, image, category, date, organization, credentialUrl } = req.body;
-        const updateData = { 
-            title, 
-            description, 
-            category: category || 'events',
-            date: date || '',
-            organization: organization || '',
-            credentialUrl: credentialUrl || '',
-            updatedAt: new Date().toISOString() 
-        };
-        if (image !== undefined && image !== null && image !== '') {
-            updateData.image = image;
-        }
+        const updateData = { ...req.body, updatedAt: new Date().toISOString() };
+        delete updateData._id;
         const result = await eventsCollection.updateOne(
             safeIdFilter(req.params.id),
             { $set: updateData }
@@ -257,18 +237,14 @@ app.get('/api/certificates', async (req, res) => {
 app.post('/api/certificates', async (req, res) => {
     try {
         if (!certCollection) return res.status(500).json({ error: "DB not connected" });
-        const { title, description, image, category, date, organization, credentialUrl } = req.body;
-        const result = await certCollection.insertOne({
-            title,
-            description,
-            image: image || '',
-            category: category || 'certificates',
-            date: date || '',
-            organization: organization || '',
-            credentialUrl: credentialUrl || '',
-            createdAt: new Date().toISOString()
-        });
-        res.status(201).json(result);
+        const doc = {
+            ...req.body,
+            category: req.body.category || 'certificates',
+            createdAt: req.body.createdAt || new Date().toISOString()
+        };
+        delete doc._id;
+        const result = await certCollection.insertOne(doc);
+        res.status(201).json({ ...doc, _id: String(result.insertedId) });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -287,19 +263,8 @@ app.delete('/api/certificates/:id', async (req, res) => {
 app.put('/api/certificates/:id', async (req, res) => {
     try {
         if (!certCollection) return res.status(500).json({ error: "DB not connected" });
-        const { title, description, image, category, date, organization, credentialUrl } = req.body;
-        const updateData = { 
-            title, 
-            description, 
-            category: category || 'certificates',
-            date: date || '',
-            organization: organization || '',
-            credentialUrl: credentialUrl || '',
-            updatedAt: new Date().toISOString() 
-        };
-        if (image !== undefined && image !== null && image !== '') {
-            updateData.image = image;
-        }
+        const updateData = { ...req.body, updatedAt: new Date().toISOString() };
+        delete updateData._id;
         const result = await certCollection.updateOne(
             safeIdFilter(req.params.id),
             { $set: updateData }
@@ -324,16 +289,13 @@ app.get('/api/projects', async (req, res) => {
 app.post('/api/projects', async (req, res) => {
     try {
         if (!projectsCollection) return res.status(500).json({ error: "DB not connected" });
-        const { title, description, image, link, type } = req.body;
-        const result = await projectsCollection.insertOne({
-            title,
-            description,
-            image,
-            link,
-            type,
-            createdAt: new Date().toISOString()
-        });
-        res.status(201).json(result);
+        const doc = {
+            ...req.body,
+            createdAt: req.body.createdAt || new Date().toISOString()
+        };
+        delete doc._id;
+        const result = await projectsCollection.insertOne(doc);
+        res.status(201).json({ ...doc, _id: String(result.insertedId) });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -352,11 +314,8 @@ app.delete('/api/projects/:id', async (req, res) => {
 app.put('/api/projects/:id', async (req, res) => {
     try {
         if (!projectsCollection) return res.status(500).json({ error: "DB not connected" });
-        const { title, description, image, link, type } = req.body;
-        const updateData = { title, description, link, type, updatedAt: new Date().toISOString() };
-        if (image !== undefined && image !== null && image !== '') {
-            updateData.image = image;
-        }
+        const updateData = { ...req.body, updatedAt: new Date().toISOString() };
+        delete updateData._id;
         const result = await projectsCollection.updateOne(
             safeIdFilter(req.params.id),
             { $set: updateData }
@@ -381,17 +340,13 @@ app.get('/api/experience', async (req, res) => {
 app.post('/api/experience', async (req, res) => {
     try {
         if (!experienceCollection) return res.status(500).json({ error: "DB not connected" });
-        const { title, institution, period, description, type, image } = req.body;
-        const result = await experienceCollection.insertOne({
-            title,
-            institution,
-            period,
-            description,
-            type: type || 'Experience',
-            image: image || null,
-            createdAt: new Date().toISOString()
-        });
-        res.status(201).json(result);
+        const doc = {
+            ...req.body,
+            createdAt: req.body.createdAt || new Date().toISOString()
+        };
+        delete doc._id;
+        const result = await experienceCollection.insertOne(doc);
+        res.status(201).json({ ...doc, _id: String(result.insertedId) });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -410,11 +365,8 @@ app.delete('/api/experience/:id', async (req, res) => {
 app.put('/api/experience/:id', async (req, res) => {
     try {
         if (!experienceCollection) return res.status(500).json({ error: "DB not connected" });
-        const { title, institution, period, description, type, image } = req.body;
-        const updateData = { title, institution, period, description, type, updatedAt: new Date().toISOString() };
-        if (image !== undefined && image !== null && image !== '') {
-            updateData.image = image;
-        }
+        const updateData = { ...req.body, updatedAt: new Date().toISOString() };
+        delete updateData._id;
         const result = await experienceCollection.updateOne(
             safeIdFilter(req.params.id),
             { $set: updateData }
@@ -431,6 +383,31 @@ app.get('/api/messages', async (req, res) => {
         if (!messagesCollection) return res.status(500).json({ error: "DB not connected" });
         const msgs = await messagesCollection.find().sort({ _id: -1 }).toArray();
         res.json(msgs);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.delete('/api/messages/:id', async (req, res) => {
+    try {
+        if (!messagesCollection) return res.status(500).json({ error: "DB not connected" });
+        const result = await messagesCollection.deleteOne(safeIdFilter(req.params.id));
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ message: 'Error', error: err.message });
+    }
+});
+
+app.put('/api/messages/:id', async (req, res) => {
+    try {
+        if (!messagesCollection) return res.status(500).json({ error: "DB not connected" });
+        const updateData = { ...req.body, updatedAt: new Date().toISOString() };
+        delete updateData._id;
+        const result = await messagesCollection.updateOne(
+            safeIdFilter(req.params.id),
+            { $set: updateData }
+        );
+        res.json(result);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

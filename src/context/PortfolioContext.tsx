@@ -113,11 +113,10 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           about: { ...initialPortfolioData.about, ...(parsed.about || {}) },
           cv: { ...initialPortfolioData.cv, ...(parsed.cv || {}) },
           sections: parsed.sections || initialPortfolioData.sections,
-          // Start with initial data for dynamic content; will be overwritten by API fetch
-          projects: initialPortfolioData.projects,
-          publications: initialPortfolioData.publications,
-          events: initialPortfolioData.events,
-          experience: initialPortfolioData.experience,
+          projects: parsed.projects?.length ? parsed.projects : initialPortfolioData.projects,
+          publications: parsed.publications?.length ? parsed.publications : initialPortfolioData.publications,
+          events: parsed.events?.length ? parsed.events : initialPortfolioData.events,
+          experience: parsed.experience?.length ? parsed.experience : initialPortfolioData.experience,
         };
       }
     } catch (e) {
@@ -129,7 +128,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [isAdmin, setIsAdmin] = useState<boolean>(() => {
     return sessionStorage.getItem(AUTH_KEY) === 'true';
   });
-  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [isLoadingData, setIsLoadingData] = useState(false);
   const [adminEmail, setAdminEmail] = useState<string>(() => {
     return localStorage.getItem('syeed_admin_email') || 'kmsyeedasif@gmail.com';
   });
@@ -159,15 +158,49 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
+  const syncLocalCache = (newData: PortfolioData) => {
+    try {
+      localStorage.setItem(API_CACHE_KEY, JSON.stringify({
+        data: {
+          projects: newData.projects || [],
+          publications: newData.publications || [],
+          events: newData.events || [],
+          experience: newData.experience || [],
+          config: {
+            theme: newData.theme,
+            hero: newData.hero,
+            about: newData.about,
+            cv: newData.cv,
+            sections: newData.sections,
+            skillCategories: newData.skillCategories,
+          },
+        },
+        timestamp: Date.now(),
+      }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        theme: newData.theme,
+        hero: newData.hero,
+        about: newData.about,
+        cv: newData.cv,
+        sections: newData.sections,
+        skillCategories: newData.skillCategories,
+        projects: newData.projects,
+        publications: newData.publications,
+        events: newData.events,
+        experience: newData.experience,
+      }));
+    } catch (e) {
+      console.warn('[Cache] Could not sync local cache:', e);
+    }
+  };
+
   useEffect(() => {
     // 1. Try to load cached API data instantly (skip loading screen on repeat visits)
     try {
       const cached = localStorage.getItem(API_CACHE_KEY);
       if (cached) {
-        const { data: cachedData, timestamp } = JSON.parse(cached);
-        const cacheAge = Date.now() - timestamp;
-        // Use cache if less than 30 minutes old
-        if (cacheAge < 30 * 60 * 1000 && cachedData) {
+        const { data: cachedData } = JSON.parse(cached);
+        if (cachedData) {
           setData(prev => ({
             ...prev,
             projects: cachedData.projects?.length ? cachedData.projects : prev.projects,
@@ -176,8 +209,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             experience: cachedData.experience?.length ? cachedData.experience : prev.experience,
             ...(cachedData.config || {}),
           }));
-          setIsLoadingData(false);
-          console.log('[Portfolio] Loaded from cache instantly ⚡ (age: ' + Math.round(cacheAge / 1000) + 's)');
+          console.log('[Portfolio] Loaded from cache instantly ⚡');
         }
       }
     } catch (e) {
@@ -358,126 +390,167 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     showToast('Section header updated', 'success');
   };
 
-  // ─── Projects CRUD (with MongoDB sync) ───────────────────────────────
+  // ─── Projects CRUD (with MongoDB sync & Cache Persistence) ────────────
   const addProject = async (project: Omit<Project, '_id'>) => {
+    let newProj: Project;
     try {
       const res = await fetch(`${API_BASE}/api/projects`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(project),
       });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const saved = await res.json();
-      const newProj: Project = { ...project, _id: saved._id || saved.insertedId || 'proj-' + Date.now(), createdAt: new Date().toISOString() };
-      setData(prev => ({ ...prev, projects: [newProj, ...prev.projects] }));
+      newProj = {
+        ...project,
+        _id: saved._id || saved.insertedId || 'proj-' + Date.now(),
+        createdAt: saved.createdAt || new Date().toISOString()
+      };
       showToast(`Project "${project.title}" published!`, 'success');
-    } catch {
-      const newProj: Project = { ...project, _id: 'proj-' + Date.now(), createdAt: new Date().toISOString() };
-      setData(prev => ({ ...prev, projects: [newProj, ...prev.projects] }));
+    } catch (err) {
+      console.warn('[API] Project add failed, saving locally:', err);
+      newProj = { ...project, _id: 'proj-' + Date.now(), createdAt: new Date().toISOString() };
       showToast(`Project "${project.title}" saved locally.`, 'info');
     }
+    setData(prev => {
+      const updated = { ...prev, projects: [newProj, ...prev.projects] };
+      syncLocalCache(updated);
+      return updated;
+    });
   };
 
   const updateProject = async (id: string, updates: Partial<Project>) => {
-    setData(prev => ({
-      ...prev,
-      projects: prev.projects.map(p => (p._id === id ? { ...p, ...updates } : p)),
-    }));
+    setData(prev => {
+      const updatedProjects = prev.projects.map(p => (p._id === id ? { ...p, ...updates } : p));
+      const updated = { ...prev, projects: updatedProjects };
+      syncLocalCache(updated);
+      return updated;
+    });
     try {
-      await fetch(`${API_BASE}/api/projects/${id}`, {
+      const res = await fetch(`${API_BASE}/api/projects/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
       });
+      if (!res.ok) console.warn('[API] project update returned HTTP ' + res.status);
     } catch (err) { console.warn('[API] project update failed:', err); }
     showToast('Project updated successfully', 'success');
   };
 
   const deleteProject = async (id: string) => {
-    setData(prev => ({ ...prev, projects: prev.projects.filter(p => p._id !== id) }));
+    setData(prev => {
+      const updatedProjects = prev.projects.filter(p => p._id !== id);
+      const updated = { ...prev, projects: updatedProjects };
+      syncLocalCache(updated);
+      return updated;
+    });
     try {
-      await fetch(`${API_BASE}/api/projects/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_BASE}/api/projects/${id}`, { method: 'DELETE' });
+      if (!res.ok) console.warn('[API] project delete returned HTTP ' + res.status);
     } catch (err) { console.warn('[API] project delete failed:', err); }
     showToast('Project deleted', 'info');
   };
 
-  // ─── Publications CRUD (with MongoDB sync) ───────────────────────────
+  // ─── Publications CRUD (with MongoDB sync & Cache Persistence) ────────
   const addPublication = async (pub: Omit<Publication, '_id'>) => {
+    let newPub: Publication;
     try {
       const res = await fetch(`${API_BASE}/api/publications`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(pub),
       });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const saved = await res.json();
-      const newPub: Publication = { ...pub, _id: saved._id || saved.insertedId || 'pub-' + Date.now(), createdAt: new Date().toISOString() };
-      setData(prev => ({ ...prev, publications: [newPub, ...prev.publications] }));
+      newPub = { ...pub, _id: saved._id || saved.insertedId || 'pub-' + Date.now(), createdAt: saved.createdAt || new Date().toISOString() };
       showToast(`Publication "${pub.title}" added!`, 'success');
-    } catch {
-      const newPub: Publication = { ...pub, _id: 'pub-' + Date.now(), createdAt: new Date().toISOString() };
-      setData(prev => ({ ...prev, publications: [newPub, ...prev.publications] }));
+    } catch (err) {
+      console.warn('[API] Publication add failed, saving locally:', err);
+      newPub = { ...pub, _id: 'pub-' + Date.now(), createdAt: new Date().toISOString() };
       showToast(`Publication saved locally.`, 'info');
     }
+    setData(prev => {
+      const updated = { ...prev, publications: [newPub, ...prev.publications] };
+      syncLocalCache(updated);
+      return updated;
+    });
   };
 
   const updatePublication = async (id: string, updates: Partial<Publication>) => {
-    setData(prev => ({
-      ...prev,
-      publications: prev.publications.map(p => (p._id === id ? { ...p, ...updates } : p)),
-    }));
+    setData(prev => {
+      const updatedPubs = prev.publications.map(p => (p._id === id ? { ...p, ...updates } : p));
+      const updated = { ...prev, publications: updatedPubs };
+      syncLocalCache(updated);
+      return updated;
+    });
     try {
-      await fetch(`${API_BASE}/api/publications/${id}`, {
+      const res = await fetch(`${API_BASE}/api/publications/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
       });
+      if (!res.ok) console.warn('[API] publication update returned HTTP ' + res.status);
     } catch (err) { console.warn('[API] publication update failed:', err); }
     showToast('Publication updated', 'success');
   };
 
   const deletePublication = async (id: string) => {
-    setData(prev => ({ ...prev, publications: prev.publications.filter(p => p._id !== id) }));
+    setData(prev => {
+      const updatedPubs = prev.publications.filter(p => p._id !== id);
+      const updated = { ...prev, publications: updatedPubs };
+      syncLocalCache(updated);
+      return updated;
+    });
     try {
-      await fetch(`${API_BASE}/api/publications/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_BASE}/api/publications/${id}`, { method: 'DELETE' });
+      if (!res.ok) console.warn('[API] publication delete returned HTTP ' + res.status);
     } catch (err) { console.warn('[API] publication delete failed:', err); }
     showToast('Publication deleted', 'info');
   };
 
-  // ─── Events & Achievements CRUD (with MongoDB sync) ──────────────────
+  // ─── Events & Achievements CRUD (with MongoDB sync & Cache Persistence)
   const addEvent = async (event: Omit<EventAchievement, '_id'>) => {
     const endpoint = event.category === 'certificates' ? '/api/certificates' : '/api/events';
+    let newEvent: EventAchievement;
     try {
       const res = await fetch(`${API_BASE}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(event),
       });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const saved = await res.json();
-      const newEvent: EventAchievement = { ...event, _id: saved._id || saved.insertedId || 'ev-' + Date.now(), createdAt: new Date().toISOString() };
-      setData(prev => ({ ...prev, events: [newEvent, ...prev.events] }));
+      newEvent = { ...event, _id: saved._id || saved.insertedId || 'ev-' + Date.now(), createdAt: saved.createdAt || new Date().toISOString() };
       showToast(`"${event.title}" published!`, 'success');
-    } catch {
-      const newEvent: EventAchievement = { ...event, _id: 'ev-' + Date.now(), createdAt: new Date().toISOString() };
-      setData(prev => ({ ...prev, events: [newEvent, ...prev.events] }));
+    } catch (err) {
+      console.warn('[API] Event add failed, saving locally:', err);
+      newEvent = { ...event, _id: 'ev-' + Date.now(), createdAt: new Date().toISOString() };
       showToast(`"${event.title}" saved locally.`, 'info');
     }
+    setData(prev => {
+      const updated = { ...prev, events: [newEvent, ...prev.events] };
+      syncLocalCache(updated);
+      return updated;
+    });
   };
 
   const updateEvent = async (id: string, updates: Partial<EventAchievement>) => {
-    setData(prev => ({
-      ...prev,
-      events: prev.events.map(ev => (ev._id === id ? { ...ev, ...updates } : ev)),
-    }));
     const category = updates.category || data.events.find(e => e._id === id)?.category;
-    const endpoint = category === 'certificates' ? `/api/certificates/${id}` : `/api/events/${id}`;
+    setData(prev => {
+      const updatedEvents = prev.events.map(ev => (ev._id === id ? { ...ev, ...updates } : ev));
+      const updated = { ...prev, events: updatedEvents };
+      syncLocalCache(updated);
+      return updated;
+    });
+    const primaryEndpoint = category === 'certificates' ? `/api/certificates/${id}` : `/api/events/${id}`;
+    const altEndpoint = category === 'certificates' ? `/api/events/${id}` : `/api/certificates/${id}`;
     try {
-      const res = await fetch(`${API_BASE}${endpoint}`, {
+      const res = await fetch(`${API_BASE}${primaryEndpoint}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
       });
       if (!res.ok) {
-        // If not found in primary endpoint, try the alternate endpoint
-        const altEndpoint = category === 'certificates' ? `/api/events/${id}` : `/api/certificates/${id}`;
         await fetch(`${API_BASE}${altEndpoint}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -490,56 +563,76 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const deleteEvent = async (id: string) => {
     const category = data.events.find(e => e._id === id)?.category;
-    setData(prev => ({ ...prev, events: prev.events.filter(ev => ev._id !== id) }));
-    const endpoint = category === 'certificates' ? `/api/certificates/${id}` : `/api/events/${id}`;
+    setData(prev => {
+      const updatedEvents = prev.events.filter(ev => ev._id !== id);
+      const updated = { ...prev, events: updatedEvents };
+      syncLocalCache(updated);
+      return updated;
+    });
+    const primaryEndpoint = category === 'certificates' ? `/api/certificates/${id}` : `/api/events/${id}`;
+    const altEndpoint = category === 'certificates' ? `/api/events/${id}` : `/api/certificates/${id}`;
     try {
-      const res = await fetch(`${API_BASE}${endpoint}`, { method: 'DELETE' });
+      const res = await fetch(`${API_BASE}${primaryEndpoint}`, { method: 'DELETE' });
       if (!res.ok) {
-        const altEndpoint = category === 'certificates' ? `/api/events/${id}` : `/api/certificates/${id}`;
         await fetch(`${API_BASE}${altEndpoint}`, { method: 'DELETE' });
       }
     } catch (err) { console.warn('[API] event delete failed:', err); }
     showToast('Milestone deleted', 'info');
   };
 
-  // ─── Experience CRUD (with MongoDB sync) ─────────────────────────────
+  // ─── Experience CRUD (with MongoDB sync & Cache Persistence) ─────────
   const addExperience = async (exp: Omit<ExperienceItem, '_id'>) => {
+    let newExp: ExperienceItem;
     try {
       const res = await fetch(`${API_BASE}/api/experience`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(exp),
       });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const saved = await res.json();
-      const newExp: ExperienceItem = { ...exp, _id: saved._id || saved.insertedId || 'exp-' + Date.now(), createdAt: new Date().toISOString() };
-      setData(prev => ({ ...prev, experience: [newExp, ...prev.experience] }));
+      newExp = { ...exp, _id: saved._id || saved.insertedId || 'exp-' + Date.now(), createdAt: saved.createdAt || new Date().toISOString() };
       showToast(`Timeline item "${exp.title}" added!`, 'success');
-    } catch {
-      const newExp: ExperienceItem = { ...exp, _id: 'exp-' + Date.now(), createdAt: new Date().toISOString() };
-      setData(prev => ({ ...prev, experience: [newExp, ...prev.experience] }));
+    } catch (err) {
+      console.warn('[API] Experience add failed, saving locally:', err);
+      newExp = { ...exp, _id: 'exp-' + Date.now(), createdAt: new Date().toISOString() };
       showToast(`Experience saved locally.`, 'info');
     }
+    setData(prev => {
+      const updated = { ...prev, experience: [newExp, ...prev.experience] };
+      syncLocalCache(updated);
+      return updated;
+    });
   };
 
   const updateExperience = async (id: string, updates: Partial<ExperienceItem>) => {
-    setData(prev => ({
-      ...prev,
-      experience: prev.experience.map(e => (e._id === id ? { ...e, ...updates } : e)),
-    }));
+    setData(prev => {
+      const updatedExp = prev.experience.map(e => (e._id === id ? { ...e, ...updates } : e));
+      const updated = { ...prev, experience: updatedExp };
+      syncLocalCache(updated);
+      return updated;
+    });
     try {
-      await fetch(`${API_BASE}/api/experience/${id}`, {
+      const res = await fetch(`${API_BASE}/api/experience/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
       });
+      if (!res.ok) console.warn('[API] experience update returned HTTP ' + res.status);
     } catch (err) { console.warn('[API] experience update failed:', err); }
     showToast('Experience updated', 'success');
   };
 
   const deleteExperience = async (id: string) => {
-    setData(prev => ({ ...prev, experience: prev.experience.filter(e => e._id !== id) }));
+    setData(prev => {
+      const updatedExp = prev.experience.filter(e => e._id !== id);
+      const updated = { ...prev, experience: updatedExp };
+      syncLocalCache(updated);
+      return updated;
+    });
     try {
-      await fetch(`${API_BASE}/api/experience/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_BASE}/api/experience/${id}`, { method: 'DELETE' });
+      if (!res.ok) console.warn('[API] experience delete returned HTTP ' + res.status);
     } catch (err) { console.warn('[API] experience delete failed:', err); }
     showToast('Experience deleted', 'info');
   };
@@ -548,7 +641,9 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const updateSkillCategories = (categories: SkillCategory[]) => {
     setData(prev => {
       saveConfigToBackend({ skillCategories: categories });
-      return { ...prev, skillCategories: categories };
+      const updated = { ...prev, skillCategories: categories };
+      syncLocalCache(updated);
+      return updated;
     });
     showToast('Skills catalog updated', 'success');
   };
@@ -565,7 +660,11 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       isRead: false,
     };
 
-    setData(prev => ({ ...prev, messages: [newMsg, ...prev.messages] }));
+    setData(prev => {
+      const updated = { ...prev, messages: [newMsg, ...prev.messages] };
+      syncLocalCache(updated);
+      return updated;
+    });
 
     try {
       await fetch(`${API_BASE}/api/messages`, {
@@ -582,16 +681,33 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return true;
   };
 
-  const deleteMessage = (id: string) => {
-    setData(prev => ({ ...prev, messages: prev.messages.filter(m => m._id !== id) }));
+  const deleteMessage = async (id: string) => {
+    setData(prev => {
+      const updatedMsgs = prev.messages.filter(m => m._id !== id);
+      const updated = { ...prev, messages: updatedMsgs };
+      syncLocalCache(updated);
+      return updated;
+    });
+    try {
+      await fetch(`${API_BASE}/api/messages/${id}`, { method: 'DELETE' });
+    } catch (err) { console.warn('[API] message delete failed:', err); }
     showToast('Message removed', 'info');
   };
 
-  const markMessageRead = (id: string) => {
-    setData(prev => ({
-      ...prev,
-      messages: prev.messages.map(m => (m._id === id ? { ...m, isRead: true } : m)),
-    }));
+  const markMessageRead = async (id: string) => {
+    setData(prev => {
+      const updatedMsgs = prev.messages.map(m => (m._id === id ? { ...m, isRead: true } : m));
+      const updated = { ...prev, messages: updatedMsgs };
+      syncLocalCache(updated);
+      return updated;
+    });
+    try {
+      await fetch(`${API_BASE}/api/messages/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isRead: true }),
+      });
+    } catch (err) { console.warn('[API] message mark read failed:', err); }
   };
 
   // ─── CV Updater ───────────────────────────────────────────────────────
