@@ -11,7 +11,7 @@ import {
   FileCode2
 } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
-import { ensureAbsoluteUrl } from '../../utils/urlUtils';
+import { ensureAbsoluteUrl, resolveImageUrl } from '../../utils/urlUtils';
 
 export const PublicationsSection: React.FC = () => {
   const { data, showToast } = usePortfolio();
@@ -62,8 +62,8 @@ export const PublicationsSection: React.FC = () => {
               </div>
 
               {pub.image && (
-                <div className="w-full md:w-1/3 shrink-0 relative z-10 overflow-hidden rounded-2xl border border-slate-200/50 dark:border-white/5 shadow-inner bg-slate-100/50 dark:bg-slate-800/50 flex items-center justify-center">
-                  <img src={pub.image} alt={pub.title} className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500" />
+                <div className="w-full sm:w-64 h-48 sm:h-auto shrink-0 relative overflow-hidden bg-slate-100 dark:bg-slate-900 border-r border-slate-200 dark:border-white/10 group-hover:border-purple-200 dark:group-hover:border-purple-500/30 transition-colors">
+                  <img src={resolveImageUrl(pub.image)} alt={pub.title} className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500" />
                 </div>
               )}
 

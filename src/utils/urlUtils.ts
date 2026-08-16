@@ -15,3 +15,12 @@ export const ensureAbsoluteUrl = (url?: string): string => {
   // Default to https
   return `https://${trimmed}`;
 };
+
+export const resolveImageUrl = (url?: string): string => {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+    return url;
+  }
+  const API_BASE = import.meta.env.VITE_API_BASE || 'https://portfolio-2-afjx.onrender.com';
+  return url.startsWith('/') ? `${API_BASE}${url}` : `${API_BASE}/${url}`;
+};

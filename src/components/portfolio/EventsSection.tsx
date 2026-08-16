@@ -5,6 +5,7 @@ import {
   Play
 } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
+import { resolveImageUrl } from '../../utils/urlUtils';
 
 export const EventsSection: React.FC = () => {
   const { data, openMediaModal } = usePortfolio();
@@ -70,7 +71,7 @@ export const EventsSection: React.FC = () => {
                   >
                     {isVideo ? (
                       <video
-                        src={item.image}
+                        src={resolveImageUrl(item.image)}
                         muted
                         loop
                         playsInline
@@ -78,7 +79,7 @@ export const EventsSection: React.FC = () => {
                       />
                     ) : (
                       <img
-                        src={item.image}
+                        src={resolveImageUrl(item.image)}
                         alt={item.title}
                         loading="lazy"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-95 group-hover:brightness-105"

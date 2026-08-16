@@ -11,7 +11,7 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
-import { ensureAbsoluteUrl } from '../../utils/urlUtils';
+import { ensureAbsoluteUrl, resolveImageUrl } from '../../utils/urlUtils';
 
 export const ProjectsSection: React.FC = () => {
   const { data, openMediaModal } = usePortfolio();
@@ -96,7 +96,7 @@ export const ProjectsSection: React.FC = () => {
               {/* Media Thumbnail */}
               <div className="relative h-56 w-full overflow-hidden bg-slate-950">
                 <img
-                  src={proj.image}
+                  src={resolveImageUrl(proj.image)}
                   alt={proj.title}
                   loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-95 group-hover:brightness-105"

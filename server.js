@@ -15,6 +15,9 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 const DIST_DIR = path.join(__dirname, 'dist');
 app.use(express.static(DIST_DIR));
 
+// Serve assets folder since database contains paths like /src/assets/...
+app.use('/src/assets', express.static(path.join(__dirname, 'src/assets')));
+
 // Health check endpoints for UptimeRobot / uptime monitoring (prevents server sleep)
 app.get(['/health', '/api/health', '/ping'], (req, res) => {
     res.status(200).json({

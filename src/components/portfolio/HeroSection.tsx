@@ -14,7 +14,7 @@ import {
   Bot
 } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
-import { ensureAbsoluteUrl } from '../../utils/urlUtils';
+import { ensureAbsoluteUrl, resolveImageUrl } from '../../utils/urlUtils';
 import { CvHoverPopup } from '../common/CvHoverPopup';
 
 export const HeroSection: React.FC = () => {
@@ -201,7 +201,7 @@ export const HeroSection: React.FC = () => {
               <div className="relative w-64 h-64 sm:w-80 sm:h-80 lg:w-92 lg:h-92 rounded-full p-2 bg-gradient-to-tr from-purple-500 via-pink-500 to-indigo-500 shadow-2xl">
                 <div className="w-full h-full rounded-full overflow-hidden bg-slate-900 border-4 border-slate-950">
                   <img
-                    src={hero.profileImageUrl}
+                    src={resolveImageUrl(hero.profileImageUrl)}
                     alt={hero.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     onError={(e) => {

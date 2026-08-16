@@ -10,6 +10,7 @@ import {
   ArrowUpRight
 } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
+import { resolveImageUrl } from '../../utils/urlUtils';
 
 export const AboutSection: React.FC = () => {
   const { data } = usePortfolio();
@@ -52,11 +53,11 @@ export const AboutSection: React.FC = () => {
           {/* Visual Showcase Card */}
           <div className="lg:col-span-5 relative group">
             <div className="absolute -inset-2 rounded-3xl bg-gradient-to-r from-purple-600 to-pink-600 opacity-30 blur-xl group-hover:opacity-50 transition duration-500" />
-            <div className="relative rounded-3xl overflow-hidden border border-slate-200 dark:border-white/15 bg-slate-900 shadow-2xl">
+            <div className="relative h-full min-h-[300px] sm:min-h-[400px] rounded-3xl overflow-hidden shadow-2xl">
               <img
-                src={about.coverImageUrl}
-                alt="Syeed Asif Workstation"
-                className="w-full h-80 sm:h-96 object-cover group-hover:scale-105 transition-transform duration-700 brightness-95"
+                src={resolveImageUrl(about.coverImageUrl)}
+                alt="About Kha. Mo. Syeed Asif"
+                className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent flex flex-col justify-end p-6">
                 <span className="text-xs font-semibold text-purple-400 uppercase tracking-widest mb-1">
