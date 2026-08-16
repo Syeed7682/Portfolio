@@ -93,58 +93,28 @@ interface PortfolioContextType {
   updateAdminCredentials: (email: string, pin: string) => void;
 }
 
-const STORAGE_KEY = 'syeed_portfolio_data_v2';
+
 const AUTH_KEY = 'syeed_portfolio_isAdmin';
 
 const PortfolioContext = createContext<PortfolioContextType | undefined>(undefined);
 
 export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [data, setData] = useState<PortfolioData>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // Merge with initial data to ensure all keys exist
-        return {
-          ...initialPortfolioData,
-          ...parsed,
-          theme: { ...initialPortfolioData.theme, ...(parsed.theme || {}) },
-          hero: { ...initialPortfolioData.hero, ...(parsed.hero || {}) },
-          about: { ...initialPortfolioData.about, ...(parsed.about || {}) },
-          cv: { ...initialPortfolioData.cv, ...(parsed.cv || {}) },
-          sections: parsed.sections || initialPortfolioData.sections,
-          projects: parsed.projects?.length ? parsed.projects : initialPortfolioData.projects,
-          publications: parsed.publications?.length ? parsed.publications : initialPortfolioData.publications,
-          events: parsed.events?.length ? parsed.events : initialPortfolioData.events,
-          experience: parsed.experience?.length ? parsed.experience : initialPortfolioData.experience,
-        };
-      }
-    } catch (e) {
-      console.warn('Could not read saved portfolio data, using defaults', e);
-    }
-    return initialPortfolioData;
-  });
+  const [data, setData] = useState<PortfolioData>(initialPortfolioData);
 
   const [isAdmin, setIsAdmin] = useState<boolean>(() => {
     return sessionStorage.getItem(AUTH_KEY) === 'true';
   });
   const [isLoadingData, setIsLoadingData] = useState(false);
-  const [adminEmail, setAdminEmail] = useState<string>(() => {
-    return localStorage.getItem('syeed_admin_email') || 'kmsyeedasif@gmail.com';
-  });
-  const [adminPin, setAdminPin] = useState<string>(() => {
-    return localStorage.getItem('syeed_admin_pin') || 'asif2026';
-  });
+  // Admin credentials are now persisted in MongoDB via the config API
+  const [adminEmail, setAdminEmail] = useState<string>('');
+  const [adminPin, setAdminPin] = useState<string>('');
   const [activeView, setActiveView] = useState<'portfolio' | 'admin'>(() => {
     return window.location.pathname === '/admin' ? 'admin' : 'portfolio';
   });
   const [toast, setToast] = useState<ToastInfo | null>(null);
   const [selectedMediaModal, setSelectedMediaModal] = useState<PortfolioContextType['selectedMediaModal']>(null);
 
-  // Fetch live data from MongoDB on mount (stale-while-revalidate strategy)
-  const API_CACHE_KEY = 'syeed_portfolio_api_cache';
-
-  // Helper to persist global config (hero, about, theme, sections, skillCategories, cv) to MongoDB
+// Fetch live data from MongoDB on mount (no localStorage fallback)
   const saveConfigToBackend = async (partialConfig: Record<string, any>) => {
     try {
       await fetch(`${API_BASE}/api/config`, {
@@ -158,111 +128,43 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
+  // No-op sync function (kept for compatibility)
   const syncLocalCache = (newData: PortfolioData) => {
-    try {
-      localStorage.setItem(API_CACHE_KEY, JSON.stringify({
-        data: {
-          projects: newData.projects || [],
-          publications: newData.publications || [],
-          events: newData.events || [],
-          experience: newData.experience || [],
-          config: {
-            theme: newData.theme,
-            hero: newData.hero,
-            about: newData.about,
-            cv: newData.cv,
-            sections: newData.sections,
-            skillCategories: newData.skillCategories,
-          },
-        },
-        timestamp: Date.now(),
-      }));
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        theme: newData.theme,
-        hero: newData.hero,
-        about: newData.about,
-        cv: newData.cv,
-        sections: newData.sections,
-        skillCategories: newData.skillCategories,
-        projects: newData.projects,
-        publications: newData.publications,
-        events: newData.events,
-        experience: newData.experience,
-      }));
-    } catch (e) {
-      console.warn('[Cache] Could not sync local cache:', e);
-    }
+    // Intentionally left blank – data persistence handled by MongoDB.
   };
 
   useEffect(() => {
-    // 1. Try to load cached API data instantly (skip loading screen on repeat visits)
-    try {
-      const cached = localStorage.getItem(API_CACHE_KEY);
-      if (cached) {
-        const { data: cachedData } = JSON.parse(cached);
-        if (cachedData) {
-          setData(prev => ({
-            ...prev,
-            projects: cachedData.projects?.length ? cachedData.projects : prev.projects,
-            publications: cachedData.publications?.length ? cachedData.publications : prev.publications,
-            events: cachedData.events?.length ? cachedData.events : prev.events,
-            experience: cachedData.experience?.length ? cachedData.experience : prev.experience,
-            ...(cachedData.config || {}),
-          }));
-          console.log('[Portfolio] Loaded from cache instantly ⚡');
-        }
-      }
-    } catch (e) {
-      console.warn('[Cache] Could not read API cache:', e);
-    }
-
-    // 2. Always fetch fresh data from Render in background
     const fetchLiveData = async () => {
+      setIsLoadingData(true);
       try {
         const res = await fetch(`${API_BASE}/api/portfolio-data`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const live = await res.json();
-
         const mergedEvents = [
           ...(live.events || []),
           ...(live.certs || []),
         ];
-
         const liveConfig = live.config || {};
-
-        setData(prev => ({
-          ...prev,
-          projects: live.projects?.length ? live.projects : prev.projects,
-          publications: live.publications?.length ? live.publications : prev.publications,
-          events: mergedEvents.length ? mergedEvents : prev.events,
-          experience: live.experience?.length ? live.experience : prev.experience,
-          theme: liveConfig.theme || prev.theme,
-          hero: liveConfig.hero || prev.hero,
-          about: liveConfig.about || prev.about,
-          cv: liveConfig.cv || prev.cv,
-          sections: liveConfig.sections || prev.sections,
-          skillCategories: liveConfig.skillCategories || prev.skillCategories,
-        }));
-
-        // Cache the fresh data for next visit
-        try {
-          localStorage.setItem(API_CACHE_KEY, JSON.stringify({
-            data: {
-              projects: live.projects || [],
-              publications: live.publications || [],
-              events: mergedEvents,
-              experience: live.experience || [],
-              config: liveConfig,
-            },
-            timestamp: Date.now(),
-          }));
-        } catch (e) {
-          console.warn('[Cache] Could not save API cache:', e);
-        }
-
+        setData({
+          ...initialPortfolioData,
+          projects: live.projects || [],
+          publications: live.publications || [],
+          events: mergedEvents,
+          experience: live.experience || [],
+          theme: liveConfig.theme || initialPortfolioData.theme,
+          hero: liveConfig.hero || initialPortfolioData.hero,
+          about: liveConfig.about || initialPortfolioData.about,
+          cv: liveConfig.cv || initialPortfolioData.cv,
+          sections: liveConfig.sections || initialPortfolioData.sections,
+          skillCategories: liveConfig.skillCategories || initialPortfolioData.skillCategories,
+        });
+        // Load admin credentials from config if present
+        setAdminEmail(liveConfig.adminEmail || '');
+        setAdminPin(liveConfig.adminPin || '');
         console.log('[Portfolio] Live data loaded from MongoDB ✓');
       } catch (err) {
-        console.warn('[Portfolio] Could not fetch live data, using cached/local defaults:', err);
+        console.warn('[Portfolio] Could not fetch live data, using defaults:', err);
+        setData(initialPortfolioData);
       } finally {
         setIsLoadingData(false);
       }
@@ -270,22 +172,8 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     fetchLiveData();
   }, []);
 
-  // Sync theme/hero/about/sections to localStorage on changes
-  useEffect(() => {
-    try {
-      const toSave = {
-        theme: data.theme,
-        hero: data.hero,
-        about: data.about,
-        cv: data.cv,
-        sections: data.sections,
-        skillCategories: data.skillCategories,
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
-    } catch (e) {
-      console.error('Error saving portfolio data to storage', e);
-    }
-  }, [data.theme, data.hero, data.about, data.cv, data.sections, data.skillCategories]);
+  // Removed localStorage sync for config.
+
 
   // Apply dark mode class to document
   // Apply dark mode class to document
@@ -336,11 +224,14 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }, 4000);
   };
 
-  const loginAdmin = (email = 'kmsyeedasif@gmail.com') => {
+  const loginAdmin = (email = 'kmsyeedasif@gmail.com', pin = '') => {
     setIsAdmin(true);
     setAdminEmail(email);
+    setAdminPin(pin);
     sessionStorage.setItem(AUTH_KEY, 'true');
-    showToast(`Welcome back, Syeed Asif! Admin Mode enabled.`, 'success');
+    // Store admin credentials in MongoDB
+    saveConfigToBackend({ adminEmail: email, adminPin: pin });
+    showToast(`Welcome back, ${email}! Admin Mode enabled.`, 'success');
   };
 
   const logoutAdmin = () => {
@@ -754,7 +645,6 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // ─── Global Config ────────────────────────────────────────────────────
   const resetToDefaults = () => {
     setData(initialPortfolioData);
-    localStorage.removeItem(STORAGE_KEY);
     showToast('Portfolio reset to default state', 'info');
   };
 
@@ -770,8 +660,8 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const updateAdminCredentials = (email: string, pin: string) => {
     setAdminEmail(email);
     setAdminPin(pin);
-    localStorage.setItem('syeed_admin_email', email);
-    localStorage.setItem('syeed_admin_pin', pin);
+    // Persist admin credentials to MongoDB via config API
+    saveConfigToBackend({ adminEmail: email, adminPin: pin });
     showToast('Admin credentials updated successfully', 'success');
   };
 
