@@ -102,6 +102,5 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
           )}
         </div>
       </div>
-    </div>
   );
 };
