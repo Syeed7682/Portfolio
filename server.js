@@ -1,22 +1,15 @@
 require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
 const { MongoClient, ObjectId } = require('mongodb');
+const cors = require('cors');
 const path = require('path');
 const nodemailer = require('nodemailer');
 const { Resend } = require('resend');
 
 const app = express();
-app.use(cors({ origin: '*', credentials: true }));
+app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-
-// Serve Vite React build (production)
-const DIST_DIR = path.join(__dirname, 'dist');
-app.use(express.static(DIST_DIR));
-
-// Serve assets folder since database contains paths like /src/assets/...
-app.use('/src/assets', express.static(path.join(__dirname, 'src/assets')));
 
 // Health check endpoints for UptimeRobot / uptime monitoring (prevents server sleep)
 app.get(['/health', '/api/health', '/ping'], (req, res) => {
@@ -34,18 +27,6 @@ const clearCache = () => {
     portfolioDataCache = null;
 };
 
-const safeIdFilter = (idStr) => {
-    if (!idStr) return { _id: idStr };
-    try {
-        if (ObjectId.isValid(idStr) && String(new ObjectId(idStr)) === String(idStr)) {
-            return { $or: [{ _id: new ObjectId(idStr) }, { _id: String(idStr) }] };
-        }
-    } catch (e) {
-        // Fallback to string matching
-    }
-    return { _id: String(idStr) };
-};
-
 // Combined Portfolio Data API (with caching)
 app.get('/api/portfolio-data', async (req, res) => {
     try {
@@ -59,16 +40,15 @@ app.get('/api/portfolio-data', async (req, res) => {
             return res.status(500).json({ error: "DB not connected" });
         }
 
-        const [events, certs, projects, publications, experience, configDoc] = await Promise.all([
+        const [events, certs, projects, publications, experience] = await Promise.all([
             eventsCollection.find().sort({ _id: -1 }).toArray(),
             certCollection.find().sort({ _id: -1 }).toArray(),
             projectsCollection.find().sort({ _id: -1 }).toArray(),
             publicationsCollection.find().sort({ _id: -1 }).toArray(),
-            experienceCollection ? experienceCollection.find().sort({ _id: -1 }).toArray() : Promise.resolve([]),
-            configCollection ? configCollection.findOne({ _id: 'global' }) : Promise.resolve(null)
+            experienceCollection ? experienceCollection.find().sort({ _id: -1 }).toArray() : Promise.resolve([])
         ]);
 
-        portfolioDataCache = { events, certs, projects, publications, experience, config: configDoc };
+        portfolioDataCache = { events, certs, projects, publications, experience };
         res.json(portfolioDataCache);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -83,41 +63,11 @@ app.use((req, res, next) => {
             path.startsWith('/api/events') || 
             path.startsWith('/api/certificates') || 
             path.startsWith('/api/projects') ||
-            path.startsWith('/api/experience') ||
-            path.startsWith('/api/config')) {
+            path.startsWith('/api/experience')) {
             clearCache();
         }
     }
     next();
-});
-
-// Site Configuration API
-app.get('/api/config', async (req, res) => {
-    try {
-        if (!configCollection) return res.status(500).json({ error: "DB not connected" });
-        const config = await configCollection.findOne({ _id: 'global' });
-        res.json(config || {});
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.put('/api/config', async (req, res) => {
-    try {
-        if (!configCollection) return res.status(500).json({ error: "DB not connected" });
-        const updateData = { ...req.body, updatedAt: new Date().toISOString() };
-        delete updateData._id;
-
-        await configCollection.updateOne(
-            { _id: 'global' },
-            { $set: updateData },
-            { upsert: true }
-        );
-        clearCache();
-        res.json({ success: true });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
 });
 
 // Publications API
@@ -134,13 +84,17 @@ app.get('/api/publications', async (req, res) => {
 app.post('/api/publications', async (req, res) => {
     try {
         if (!publicationsCollection) return res.status(500).json({ error: "DB not connected" });
-        const doc = {
-            ...req.body,
-            createdAt: req.body.createdAt || new Date().toISOString()
-        };
-        delete doc._id;
-        const result = await publicationsCollection.insertOne(doc);
-        res.status(201).json({ ...doc, _id: String(result.insertedId) });
+        const { title, description, link, authors, conference, year } = req.body;
+        const result = await publicationsCollection.insertOne({
+            title,
+            description,
+            link,
+            authors,
+            conference,
+            year,
+            createdAt: new Date().toISOString()
+        });
+        res.status(201).json(result);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -149,21 +103,20 @@ app.post('/api/publications', async (req, res) => {
 app.delete('/api/publications/:id', async (req, res) => {
     try {
         if (!publicationsCollection) return res.status(500).json({ error: "DB not connected" });
-        const result = await publicationsCollection.deleteOne(safeIdFilter(req.params.id));
+        const result = await publicationsCollection.deleteOne({ _id: new ObjectId(req.params.id) });
         res.json(result);
     } catch (err) {
-        res.status(500).json({ message: 'Error', error: err.message });
+        res.status(500).json({ message: 'Error' });
     }
 });
 
 app.put('/api/publications/:id', async (req, res) => {
     try {
         if (!publicationsCollection) return res.status(500).json({ error: "DB not connected" });
-        const updateData = { ...req.body, updatedAt: new Date().toISOString() };
-        delete updateData._id;
+        const { title, description, link, authors, conference, year } = req.body;
         const result = await publicationsCollection.updateOne(
-            safeIdFilter(req.params.id),
-            { $set: updateData }
+            { _id: new ObjectId(req.params.id) },
+            { $set: { title, description, link, authors, conference, year, updatedAt: new Date().toISOString() } }
         );
         res.json(result);
     } catch (error) {
@@ -185,14 +138,14 @@ app.get('/api/events', async (req, res) => {
 app.post('/api/events', async (req, res) => {
     try {
         if (!eventsCollection) return res.status(500).json({ error: "DB not connected" });
-        const doc = {
-            ...req.body,
-            category: req.body.category || 'events',
-            createdAt: req.body.createdAt || new Date().toISOString()
-        };
-        delete doc._id;
-        const result = await eventsCollection.insertOne(doc);
-        res.status(201).json({ ...doc, _id: String(result.insertedId) });
+        const { title, description, image } = req.body;
+        const result = await eventsCollection.insertOne({
+            title,
+            description,
+            image,
+            createdAt: new Date().toISOString()
+        });
+        res.status(201).json(result);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -201,20 +154,23 @@ app.post('/api/events', async (req, res) => {
 app.delete('/api/events/:id', async (req, res) => {
     try {
         if (!eventsCollection) return res.status(500).json({ error: "DB not connected" });
-        const result = await eventsCollection.deleteOne(safeIdFilter(req.params.id));
+        const result = await eventsCollection.deleteOne({ _id: new ObjectId(req.params.id) });
         res.json(result);
     } catch (err) {
-        res.status(500).json({ message: 'Error', error: err.message });
+        res.status(500).json({ message: 'Error' });
     }
 });
 
 app.put('/api/events/:id', async (req, res) => {
     try {
         if (!eventsCollection) return res.status(500).json({ error: "DB not connected" });
-        const updateData = { ...req.body, updatedAt: new Date().toISOString() };
-        delete updateData._id;
+        const { title, description, image } = req.body;
+        const updateData = { title, description, updatedAt: new Date().toISOString() };
+        if (image !== undefined && image !== null && image !== '') {
+            updateData.image = image;
+        }
         const result = await eventsCollection.updateOne(
-            safeIdFilter(req.params.id),
+            { _id: new ObjectId(req.params.id) },
             { $set: updateData }
         );
         res.json(result);
@@ -237,14 +193,14 @@ app.get('/api/certificates', async (req, res) => {
 app.post('/api/certificates', async (req, res) => {
     try {
         if (!certCollection) return res.status(500).json({ error: "DB not connected" });
-        const doc = {
-            ...req.body,
-            category: req.body.category || 'certificates',
-            createdAt: req.body.createdAt || new Date().toISOString()
-        };
-        delete doc._id;
-        const result = await certCollection.insertOne(doc);
-        res.status(201).json({ ...doc, _id: String(result.insertedId) });
+        const { title, description, image } = req.body;
+        const result = await certCollection.insertOne({
+            title,
+            description,
+            image,
+            createdAt: new Date().toISOString()
+        });
+        res.status(201).json(result);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -253,20 +209,23 @@ app.post('/api/certificates', async (req, res) => {
 app.delete('/api/certificates/:id', async (req, res) => {
     try {
         if (!certCollection) return res.status(500).json({ error: "DB not connected" });
-        const result = await certCollection.deleteOne(safeIdFilter(req.params.id));
+        const result = await certCollection.deleteOne({ _id: new ObjectId(req.params.id) });
         res.json(result);
     } catch (err) {
-        res.status(500).json({ message: 'Error', error: err.message });
+        res.status(500).json({ message: 'Error' });
     }
 });
 
 app.put('/api/certificates/:id', async (req, res) => {
     try {
         if (!certCollection) return res.status(500).json({ error: "DB not connected" });
-        const updateData = { ...req.body, updatedAt: new Date().toISOString() };
-        delete updateData._id;
+        const { title, description, image } = req.body;
+        const updateData = { title, description, updatedAt: new Date().toISOString() };
+        if (image !== undefined && image !== null && image !== '') {
+            updateData.image = image;
+        }
         const result = await certCollection.updateOne(
-            safeIdFilter(req.params.id),
+            { _id: new ObjectId(req.params.id) },
             { $set: updateData }
         );
         res.json(result);
@@ -289,13 +248,16 @@ app.get('/api/projects', async (req, res) => {
 app.post('/api/projects', async (req, res) => {
     try {
         if (!projectsCollection) return res.status(500).json({ error: "DB not connected" });
-        const doc = {
-            ...req.body,
-            createdAt: req.body.createdAt || new Date().toISOString()
-        };
-        delete doc._id;
-        const result = await projectsCollection.insertOne(doc);
-        res.status(201).json({ ...doc, _id: String(result.insertedId) });
+        const { title, description, image, link, type } = req.body;
+        const result = await projectsCollection.insertOne({
+            title,
+            description,
+            image,
+            link,
+            type,
+            createdAt: new Date().toISOString()
+        });
+        res.status(201).json(result);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -304,20 +266,23 @@ app.post('/api/projects', async (req, res) => {
 app.delete('/api/projects/:id', async (req, res) => {
     try {
         if (!projectsCollection) return res.status(500).json({ error: "DB not connected" });
-        const result = await projectsCollection.deleteOne(safeIdFilter(req.params.id));
+        const result = await projectsCollection.deleteOne({ _id: new ObjectId(req.params.id) });
         res.json(result);
     } catch (err) {
-        res.status(500).json({ message: 'Error', error: err.message });
+        res.status(500).json({ message: 'Error' });
     }
 });
 
 app.put('/api/projects/:id', async (req, res) => {
     try {
         if (!projectsCollection) return res.status(500).json({ error: "DB not connected" });
-        const updateData = { ...req.body, updatedAt: new Date().toISOString() };
-        delete updateData._id;
+        const { title, description, image, link, type } = req.body;
+        const updateData = { title, description, link, type, updatedAt: new Date().toISOString() };
+        if (image !== undefined && image !== null && image !== '') {
+            updateData.image = image;
+        }
         const result = await projectsCollection.updateOne(
-            safeIdFilter(req.params.id),
+            { _id: new ObjectId(req.params.id) },
             { $set: updateData }
         );
         res.json(result);
@@ -340,13 +305,17 @@ app.get('/api/experience', async (req, res) => {
 app.post('/api/experience', async (req, res) => {
     try {
         if (!experienceCollection) return res.status(500).json({ error: "DB not connected" });
-        const doc = {
-            ...req.body,
-            createdAt: req.body.createdAt || new Date().toISOString()
-        };
-        delete doc._id;
-        const result = await experienceCollection.insertOne(doc);
-        res.status(201).json({ ...doc, _id: String(result.insertedId) });
+        const { title, institution, period, description, type, image } = req.body;
+        const result = await experienceCollection.insertOne({
+            title,
+            institution,
+            period,
+            description,
+            type: type || 'Experience',
+            image: image || null,
+            createdAt: new Date().toISOString()
+        });
+        res.status(201).json(result);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -355,20 +324,23 @@ app.post('/api/experience', async (req, res) => {
 app.delete('/api/experience/:id', async (req, res) => {
     try {
         if (!experienceCollection) return res.status(500).json({ error: "DB not connected" });
-        const result = await experienceCollection.deleteOne(safeIdFilter(req.params.id));
+        const result = await experienceCollection.deleteOne({ _id: new ObjectId(req.params.id) });
         res.json(result);
     } catch (err) {
-        res.status(500).json({ message: 'Error', error: err.message });
+        res.status(500).json({ message: 'Error' });
     }
 });
 
 app.put('/api/experience/:id', async (req, res) => {
     try {
         if (!experienceCollection) return res.status(500).json({ error: "DB not connected" });
-        const updateData = { ...req.body, updatedAt: new Date().toISOString() };
-        delete updateData._id;
+        const { title, institution, period, description, type, image } = req.body;
+        const updateData = { title, institution, period, description, type, updatedAt: new Date().toISOString() };
+        if (image !== undefined && image !== null && image !== '') {
+            updateData.image = image;
+        }
         const result = await experienceCollection.updateOne(
-            safeIdFilter(req.params.id),
+            { _id: new ObjectId(req.params.id) },
             { $set: updateData }
         );
         res.json(result);
@@ -383,31 +355,6 @@ app.get('/api/messages', async (req, res) => {
         if (!messagesCollection) return res.status(500).json({ error: "DB not connected" });
         const msgs = await messagesCollection.find().sort({ _id: -1 }).toArray();
         res.json(msgs);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.delete('/api/messages/:id', async (req, res) => {
-    try {
-        if (!messagesCollection) return res.status(500).json({ error: "DB not connected" });
-        const result = await messagesCollection.deleteOne(safeIdFilter(req.params.id));
-        res.json(result);
-    } catch (err) {
-        res.status(500).json({ message: 'Error', error: err.message });
-    }
-});
-
-app.put('/api/messages/:id', async (req, res) => {
-    try {
-        if (!messagesCollection) return res.status(500).json({ error: "DB not connected" });
-        const updateData = { ...req.body, updatedAt: new Date().toISOString() };
-        delete updateData._id;
-        const result = await messagesCollection.updateOne(
-            safeIdFilter(req.params.id),
-            { $set: updateData }
-        );
-        res.json(result);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -436,15 +383,6 @@ app.post('/api/messages', async (req, res) => {
         console.log(`[Email] RESEND_API_KEY set: ${!!resendApiKey}`);
         console.log(`[Email] GMAIL_USER: ${gmailUser}`);
         console.log(`[Email] GMAIL_PASS set: ${!!gmailPass}`);
-
-        connectDB().then(() => {
-          app.listen(PORT, () => {
-            console.log(`Server running on http://localhost:${PORT}`);
-          });
-        }).catch(err => {
-          console.error("Failed to connect to database:", err);
-          process.exit(1);
-        });
 
         const subjectText = `New Portfolio Message: ${subject}`;
         const htmlBody = `
@@ -550,52 +488,6 @@ app.get('/api/test-email', async (req, res) => {
     }
 });
 
-// Google OAuth verification endpoint
-const { OAuth2Client } = require('google-auth-library');
-const jwt = require('jsonwebtoken');
-
-const oauthClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key_12345';
-
-app.post('/api/auth/google/verify', async (req, res) => {
-    try {
-        const { credential } = req.body;
-        if (!credential) {
-            return res.status(400).json({ error: 'No credential provided' });
-        }
-
-        const ticket = await oauthClient.verifyIdToken({
-            idToken: credential,
-            audience: process.env.GOOGLE_CLIENT_ID,
-        });
-        const payload = ticket.getPayload();
-        
-        // Verify email
-        if (payload.email !== 'kmsyeedasif@gmail.com') {
-            return res.status(403).json({ error: 'Unauthorized email. Admin access denied.' });
-        }
-
-        // Issue JWT session token
-        const token = jwt.sign(
-            { email: payload.email, role: 'admin' },
-            JWT_SECRET,
-            { expiresIn: '24h' }
-        );
-
-        res.json({ 
-            success: true, 
-            token, 
-            email: payload.email,
-            name: payload.name,
-            picture: payload.picture
-        });
-    } catch (error) {
-        console.error('Google verify error:', error);
-        const errMsg = error && error.message ? error.message : 'Invalid Google token';
-        res.status(401).json({ error: errMsg, details: error?.stack || null });
-    }
-});
-
 
 app.delete('/api/messages/:id', async (req, res) => {
     try {
@@ -660,13 +552,10 @@ app.get('/api/cv/download', async (req, res) => {
 
 // Serve static files from the current directory
 app.use(express.static(path.join(__dirname)));
-
 const uri = process.env.MONGODB_URI;
-if (!uri) {
-  console.error('MONGODB_URI not set');
-  process.exit(1);
-}
-const client = new MongoClient(uri, { tlsAllowInvalidCertificates: true });
+
+
+const client = new MongoClient(uri);
 
 let db;
 let eventsCollection;
@@ -676,7 +565,6 @@ let publicationsCollection;
 let messagesCollection;
 let cvCollection;
 let experienceCollection;
-let configCollection;
 
 async function connectDB() {
     try {
@@ -690,7 +578,6 @@ async function connectDB() {
         messagesCollection = db.collection("messages");
         cvCollection = db.collection("cv");
         experienceCollection = db.collection("experience");
-        configCollection = db.collection("site_config");
 
         // Migration: Add existing projects if empty
         const projectCount = await projectsCollection.countDocuments();
@@ -847,221 +734,12 @@ async function connectDB() {
         }
     } catch (error) {
         console.error("MongoDB connection error:", error);
-        process.exit(1); // Exit so the hosting provider can restart the service
     }
 }
 
-// SPA Catch-all: serve React app for all non-API routes
-// The Admin panel is now handled inside the React application
-app.get('*', (req, res) => {
-    const indexPath = path.join(DIST_DIR, 'index.html');
-    res.sendFile(indexPath, (err) => {
-        if (err) {
-            // dist not built yet — send a redirect hint
-            res.status(503).send(`
-                <!DOCTYPE html>
-                <html><head><title>Building...</title></head>
-                <body style="font-family:sans-serif;text-align:center;padding:60px;background:#0f172a;color:#e2e8f0">
-                <h2>🔧 Portfolio is building...</h2>
-                <p>Run <code>npm run build</code> then restart the server.</p>
-                </body></html>`);
-        }
-    });
-});
-
-
-const PORT = process.env.PORT || 3000;
-
-// Start server and connect to database
-connectDB().then(() => {
-    app.listen(PORT, () => {
-        console.log(`Server running on http://localhost:${PORT}`);
-        console.log("Connected to MongoDB Atlas!");
-        db = client.db("Portfolio");
-        eventsCollection = db.collection("achievements");
-        certCollection = db.collection("certificates");
-        projectsCollection = db.collection("projects");
-        publicationsCollection = db.collection("publications");
-        messagesCollection = db.collection("messages");
-        cvCollection = db.collection("cv");
-        experienceCollection = db.collection("experience");
-        configCollection = db.collection("site_config");
-
-        // Migration: Add existing projects if empty
-        const projectCount = await projectsCollection.countDocuments();
-        if (projectCount === 0) {
-            const initialProjects = [
-                {
-                    title: "MedRAG-VQA",
-                    description: "Multimodal RAG pipeline for clinical Q&A on X-rays/MRIs using BiomedCLIP and LLaVA-1.5-7B.",
-                    image: "image/rag.png",
-                    link: "https://github.com/Syeed7682",
-                    type: "AI / ML",
-                    createdAt: new Date().toISOString()
-                },
-                {
-                    title: "FAISS Similarity Search",
-                    description: "Benchmarking FAISS indexes (HNSW, IVFFlat) on SIFT1M dataset with performance visualizations.",
-                    image: "image/faiss.jpg",
-                    link: "https://github.com/Syeed7682",
-                    type: "Data Science",
-                    createdAt: new Date().toISOString()
-                },
-                {
-                    title: "IoT Smart Home",
-                    description: "Real-time monitoring and control system for Tuya IoT devices with environmental analytics.",
-                    image: "image/iot smart.jpg",
-                    link: "https://github.com/Syeed7682",
-                    type: "IoT",
-                    createdAt: new Date().toISOString()
-                },
-                {
-                    title: "Cine-Mela",
-                    description: "Movie recommender system with reinforcement learning.",
-                    image: "image/cinemela.jpg",
-                    link: "https://github.com/Syeed7682",
-                    type: "Data Science",
-                    createdAt: new Date().toISOString()
-                },
-                {
-                    title: "Bangladesh Election Dashboard 2026",
-                    description: "Live dashboard for election forecasting and real-time visualization.",
-                    image: "image/Election dashboard.jpg",
-                    link: "https://github.com/Syeed7682",
-                    type: "Data Science",
-                    createdAt: new Date().toISOString()
-                },
-                {
-                    title: "E-Commerce System",
-                    description: "Complete e-commerce platform with secure payment integration.",
-                    image: "image/Portfolio_cover.jpg",
-                    link: "https://github.com/Syeed7682",
-                    type: "Web App",
-                    createdAt: new Date().toISOString()
-                }
-            ];
-            await projectsCollection.insertMany(initialProjects);
-            console.log("Projects migrated to MongoDB!");
-        }
-        // Migration: Add existing publications if empty
-        const pubCount = await publicationsCollection.countDocuments();
-        if (pubCount === 0) {
-            const initialPublications = [
-                {
-                    title: "Real-Time UAV-Based Building Surface Defect Detection: A Dataset-Driven Lightweight CNN Framework with Grad-CAM Explainability",
-                    description: "Achieved 95.39% accuracy with 15 fps inference on Jetson-class edge devices. Integrated Grad-CAM explainability streamed to mobile devices for real-time visual justification.",
-                    authors: "Kha. Mo. Syeed Asif, Maherun Nessa Isty, Raihan Ul Islam, Raiyan Gani, Tasmia Islam, M. Saddam Hossain Khan",
-                    conference: "2025 International Conference on Quantum Photonics, Artificial Intelligence, and Networking (QPAIN)",
-                    year: "2025",
-                    link: "https://doi.org/10.1109/QPAIN66474.2025.11171763",
-                    createdAt: new Date().toISOString()
-                }
-            ];
-            await publicationsCollection.insertMany(initialPublications);
-            console.log("Publications migrated to MongoDB!");
-        }
-        // Migration: Add existing Education & Experience if empty
-        const expCount = await experienceCollection.countDocuments();
-        if (expCount === 0) {
-            const initialExperience = [
-                {
-                    title: "B.Sc. in Computer Science & Engineering",
-                    institution: "East West University, Dhaka",
-                    period: "Expected 2026",
-                    description: "Major: Data Science",
-                    type: "Education",
-                    createdAt: new Date().toISOString()
-                },
-                {
-                    title: "Higher Secondary Certificate (HSC)",
-                    institution: "Comilla Government College",
-                    period: "2021",
-                    description: "Science Stream",
-                    type: "Education",
-                    createdAt: new Date().toISOString()
-                },
-                {
-                    title: "Secondary School Certificate (SSC)",
-                    institution: "Comilla Modern High School",
-                    period: "2019",
-                    description: "Science Stream",
-                    type: "Education",
-                    createdAt: new Date().toISOString()
-                },
-                {
-                    title: "Full-Stack Developer",
-                    institution: "Multiple Projects",
-                    period: "2023 - Present",
-                    description: "Developed 15+ scalable web applications and ML models.",
-                    type: "Experience",
-                    createdAt: new Date().toISOString()
-                },
-                {
-                    title: "Data Science Enthusiast",
-                    institution: "Open Source Community",
-                    period: "2024 - Present",
-                    description: "Contributing to ML and advanced data analysis projects.",
-                    type: "Experience",
-                    createdAt: new Date().toISOString()
-                },
-                {
-                    title: "Technical Contributor",
-                    institution: "Open Source Initiatives",
-                    period: "2023 - Present",
-                    description: "Active contributor to community-driven projects.",
-                    type: "Experience",
-                    createdAt: new Date().toISOString()
-                },
-                {
-                    title: "Associate Executive",
-                    institution: "East West University Robotics Club",
-                    period: "2024 - Present",
-                    description: "Volunteer Trainer, Event & Logistics Coordinator. Conducted technical training for 200+ members.",
-                    type: "Experience",
-                    createdAt: new Date().toISOString()
-                },
-                {
-                    title: "Dedicated Volunteer",
-                    institution: "EWU CSE Fest & Robo Fest 2024",
-                    period: "2024",
-                    description: "Actively volunteered for EWU CSE Fest and EWURC National Robo Fest 2024, managing logistics and event flow.",
-                    type: "Experience",
-                    createdAt: new Date().toISOString()
-                },
-                {
-                    title: "Leadership Roles",
-                    institution: "CGC Science Club",
-                    period: "2020 - 2021",
-                    description: "Event & Logistics Manager (Science Club) and Volunteer Commanding Officer (Science Fair & Farewell).",
-                    type: "Experience",
-                    createdAt: new Date().toISOString()
-                }
-            ];
-            await experienceCollection.insertMany(initialExperience);
-            console.log("Education & Experience migrated to MongoDB!");
-        }
-    } catch (error) {
-        console.error("MongoDB connection error:", error);
-        process.exit(1); // Exit so the hosting provider can restart the service
-    }
-}
-
-// SPA Catch-all: serve React app for all non-API routes
-// The Admin panel is now handled inside the React application
-app.get('*', (req, res) => {
-    const indexPath = path.join(DIST_DIR, 'index.html');
-    res.sendFile(indexPath, (err) => {
-        if (err) {
-            // dist not built yet — send a redirect hint
-            res.status(503).send(`
-                <!DOCTYPE html>
-                <html><head><title>Building...</title></head>
-                <body style="font-family:sans-serif;text-align:center;padding:60px;background:#0f172a;color:#e2e8f0">
-                <h2>🔧 Portfolio is building...</h2>
-                <p>Run <code>npm run build</code> then restart the server.</p>
-                </body></html>`);
-        }
-    });
+// Admin Route
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
 
