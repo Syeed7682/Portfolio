@@ -10,7 +10,7 @@ import {
   CheckCircle2,
   AlertCircle
 } from 'lucide-react';
-import { usePortfolio } from '../../context/PortfolioContext';
+import { usePortfolio, API_BASE } from '../../context/PortfolioContext';
 import { GoogleLogin } from '@react-oauth/google';
 
 interface AdminLoginModalProps {
@@ -62,7 +62,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
               <GoogleLogin
                 onSuccess={async (credentialResponse) => {
                   try {
-                    const res = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:3000'}/api/auth/google/verify`, {
+                    const res = await fetch(`${API_BASE}/api/auth/google/verify`, {
                       method: 'POST',
                       headers: {
                         'Content-Type': 'application/json',
