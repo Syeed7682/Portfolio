@@ -11,6 +11,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
+import { GoogleLogin } from '@react-oauth/google';
 
 interface AdminLoginModalProps {
   isOpen: boolean;
@@ -18,25 +19,10 @@ interface AdminLoginModalProps {
 }
 
 export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClose }) => {
-  const { loginAdmin, adminEmail, adminPin } = usePortfolio();
-  const [emailInput, setEmailInput] = useState(adminEmail);
-  const [passwordInput, setPasswordInput] = useState('');
+  const { loginAdmin } = usePortfolio();
   const [authError, setAuthError] = useState('');
 
   if (!isOpen) return null;
-
-  const handlePasswordSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (
-      emailInput.toLowerCase().trim() === adminEmail.toLowerCase().trim() && 
-      passwordInput === adminPin
-    ) {
-      loginAdmin(emailInput);
-      onClose();
-    } else {
-      setAuthError('Unauthorized email or incorrect password.');
-    }
-  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
@@ -67,33 +53,43 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handlePasswordSubmit} className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-300">Authorized Email</label>
-            <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-              <input
-                type="email"
-                required
-                value={emailInput}
-                onChange={(e) => setEmailInput(e.target.value)}
-                placeholder="kmsyeedasif@gmail.com"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950/70 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-300">Access Key / PIN</label>
-            <div className="relative">
-              <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-              <input
-                type="password"
-                value={passwordInput}
-                onChange={(e) => setPasswordInput(e.target.value)}
-                placeholder="Enter password or leave blank for authorized email"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950/70 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+          <div className="space-y-4">
+            <div className="flex flex-col items-center justify-center space-y-4 p-4 border border-white/10 rounded-xl bg-slate-950/70">
+              <p className="text-xs text-slate-300 text-center">
+                Sign in with the authorized Google account to manage the portfolio.
+              </p>
+              
+              <GoogleLogin
+                onSuccess={async (credentialResponse) => {
+                  try {
+                    const res = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:3000'}/api/auth/google/verify`, {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({ credential: credentialResponse.credential }),
+                    });
+                    
+                    const data = await res.json();
+                    
+                    if (res.ok && data.success) {
+                      // Store token in sessionStorage for persistence
+                      sessionStorage.setItem('admin_token', data.token);
+                      loginAdmin(data.email);
+                      onClose();
+                    } else {
+                      setAuthError(data.error || 'Google authentication failed');
+                    }
+                  } catch (err) {
+                    setAuthError('Network error during authentication');
+                  }
+                }}
+                onError={() => {
+                  setAuthError('Google Login Failed');
+                }}
+                useOneTap
+                theme="filled_black"
+                shape="pill"
               />
             </div>
           </div>
@@ -104,15 +100,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
               <span>{authError}</span>
             </div>
           )}
-
-          <button
-            type="submit"
-            className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/10 transition-colors flex items-center justify-center gap-2"
-          >
-            <span>Authenticate Session</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   );

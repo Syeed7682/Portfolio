@@ -541,6 +541,51 @@ app.get('/api/test-email', async (req, res) => {
     }
 });
 
+// Google OAuth verification endpoint
+const { OAuth2Client } = require('google-auth-library');
+const jwt = require('jsonwebtoken');
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key_12345';
+
+app.post('/api/auth/google/verify', async (req, res) => {
+    try {
+        const { credential } = req.body;
+        if (!credential) {
+            return res.status(400).json({ error: 'No credential provided' });
+        }
+
+        const ticket = await client.verifyIdToken({
+            idToken: credential,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        const payload = ticket.getPayload();
+        
+        // Verify email
+        if (payload.email !== 'kmsyeedasif@gmail.com') {
+            return res.status(403).json({ error: 'Unauthorized email. Admin access denied.' });
+        }
+
+        // Issue JWT session token
+        const token = jwt.sign(
+            { email: payload.email, role: 'admin' },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
+        res.json({ 
+            success: true, 
+            token, 
+            email: payload.email,
+            name: payload.name,
+            picture: payload.picture
+        });
+    } catch (error) {
+        console.error('Google verify error:', error);
+        res.status(401).json({ error: 'Invalid Google token' });
+    }
+});
+
 
 app.delete('/api/messages/:id', async (req, res) => {
     try {
