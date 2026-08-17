@@ -833,6 +833,7 @@ async function connectDB() {
         }
     } catch (error) {
         console.error("MongoDB connection error:", error);
+        process.exit(1); // Exit so the hosting provider can restart the service
     }
 }
 
