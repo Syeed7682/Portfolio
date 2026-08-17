@@ -545,7 +545,7 @@ app.get('/api/test-email', async (req, res) => {
 const { OAuth2Client } = require('google-auth-library');
 const jwt = require('jsonwebtoken');
 
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const oauthClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key_12345';
 
 app.post('/api/auth/google/verify', async (req, res) => {
@@ -555,7 +555,7 @@ app.post('/api/auth/google/verify', async (req, res) => {
             return res.status(400).json({ error: 'No credential provided' });
         }
 
-        const ticket = await client.verifyIdToken({
+        const ticket = await oauthClient.verifyIdToken({
             idToken: credential,
             audience: process.env.GOOGLE_CLIENT_ID,
         });
