@@ -437,6 +437,15 @@ app.post('/api/messages', async (req, res) => {
         console.log(`[Email] GMAIL_USER: ${gmailUser}`);
         console.log(`[Email] GMAIL_PASS set: ${!!gmailPass}`);
 
+        connectDB().then(() => {
+          app.listen(PORT, () => {
+            console.log(`Server running on http://localhost:${PORT}`);
+          });
+        }).catch(err => {
+          console.error("Failed to connect to database:", err);
+          process.exit(1);
+        });
+
         const subjectText = `New Portfolio Message: ${subject}`;
         const htmlBody = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
@@ -867,10 +876,203 @@ const PORT = process.env.PORT || 3000;
 connectDB().then(() => {
     app.listen(PORT, () => {
         console.log(`Server running on http://localhost:${PORT}`);
+        console.log("Connected to MongoDB Atlas!");
+        db = client.db("Portfolio");
+        eventsCollection = db.collection("achievements");
+        certCollection = db.collection("certificates");
+        projectsCollection = db.collection("projects");
+        publicationsCollection = db.collection("publications");
+        messagesCollection = db.collection("messages");
+        cvCollection = db.collection("cv");
+        experienceCollection = db.collection("experience");
+        configCollection = db.collection("site_config");
+
+        // Migration: Add existing projects if empty
+        const projectCount = await projectsCollection.countDocuments();
+        if (projectCount === 0) {
+            const initialProjects = [
+                {
+                    title: "MedRAG-VQA",
+                    description: "Multimodal RAG pipeline for clinical Q&A on X-rays/MRIs using BiomedCLIP and LLaVA-1.5-7B.",
+                    image: "image/rag.png",
+                    link: "https://github.com/Syeed7682",
+                    type: "AI / ML",
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    title: "FAISS Similarity Search",
+                    description: "Benchmarking FAISS indexes (HNSW, IVFFlat) on SIFT1M dataset with performance visualizations.",
+                    image: "image/faiss.jpg",
+                    link: "https://github.com/Syeed7682",
+                    type: "Data Science",
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    title: "IoT Smart Home",
+                    description: "Real-time monitoring and control system for Tuya IoT devices with environmental analytics.",
+                    image: "image/iot smart.jpg",
+                    link: "https://github.com/Syeed7682",
+                    type: "IoT",
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    title: "Cine-Mela",
+                    description: "Movie recommender system with reinforcement learning.",
+                    image: "image/cinemela.jpg",
+                    link: "https://github.com/Syeed7682",
+                    type: "Data Science",
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    title: "Bangladesh Election Dashboard 2026",
+                    description: "Live dashboard for election forecasting and real-time visualization.",
+                    image: "image/Election dashboard.jpg",
+                    link: "https://github.com/Syeed7682",
+                    type: "Data Science",
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    title: "E-Commerce System",
+                    description: "Complete e-commerce platform with secure payment integration.",
+                    image: "image/Portfolio_cover.jpg",
+                    link: "https://github.com/Syeed7682",
+                    type: "Web App",
+                    createdAt: new Date().toISOString()
+                }
+            ];
+            await projectsCollection.insertMany(initialProjects);
+            console.log("Projects migrated to MongoDB!");
+        }
+        // Migration: Add existing publications if empty
+        const pubCount = await publicationsCollection.countDocuments();
+        if (pubCount === 0) {
+            const initialPublications = [
+                {
+                    title: "Real-Time UAV-Based Building Surface Defect Detection: A Dataset-Driven Lightweight CNN Framework with Grad-CAM Explainability",
+                    description: "Achieved 95.39% accuracy with 15 fps inference on Jetson-class edge devices. Integrated Grad-CAM explainability streamed to mobile devices for real-time visual justification.",
+                    authors: "Kha. Mo. Syeed Asif, Maherun Nessa Isty, Raihan Ul Islam, Raiyan Gani, Tasmia Islam, M. Saddam Hossain Khan",
+                    conference: "2025 International Conference on Quantum Photonics, Artificial Intelligence, and Networking (QPAIN)",
+                    year: "2025",
+                    link: "https://doi.org/10.1109/QPAIN66474.2025.11171763",
+                    createdAt: new Date().toISOString()
+                }
+            ];
+            await publicationsCollection.insertMany(initialPublications);
+            console.log("Publications migrated to MongoDB!");
+        }
+        // Migration: Add existing Education & Experience if empty
+        const expCount = await experienceCollection.countDocuments();
+        if (expCount === 0) {
+            const initialExperience = [
+                {
+                    title: "B.Sc. in Computer Science & Engineering",
+                    institution: "East West University, Dhaka",
+                    period: "Expected 2026",
+                    description: "Major: Data Science",
+                    type: "Education",
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    title: "Higher Secondary Certificate (HSC)",
+                    institution: "Comilla Government College",
+                    period: "2021",
+                    description: "Science Stream",
+                    type: "Education",
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    title: "Secondary School Certificate (SSC)",
+                    institution: "Comilla Modern High School",
+                    period: "2019",
+                    description: "Science Stream",
+                    type: "Education",
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    title: "Full-Stack Developer",
+                    institution: "Multiple Projects",
+                    period: "2023 - Present",
+                    description: "Developed 15+ scalable web applications and ML models.",
+                    type: "Experience",
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    title: "Data Science Enthusiast",
+                    institution: "Open Source Community",
+                    period: "2024 - Present",
+                    description: "Contributing to ML and advanced data analysis projects.",
+                    type: "Experience",
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    title: "Technical Contributor",
+                    institution: "Open Source Initiatives",
+                    period: "2023 - Present",
+                    description: "Active contributor to community-driven projects.",
+                    type: "Experience",
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    title: "Associate Executive",
+                    institution: "East West University Robotics Club",
+                    period: "2024 - Present",
+                    description: "Volunteer Trainer, Event & Logistics Coordinator. Conducted technical training for 200+ members.",
+                    type: "Experience",
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    title: "Dedicated Volunteer",
+                    institution: "EWU CSE Fest & Robo Fest 2024",
+                    period: "2024",
+                    description: "Actively volunteered for EWU CSE Fest and EWURC National Robo Fest 2024, managing logistics and event flow.",
+                    type: "Experience",
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    title: "Leadership Roles",
+                    institution: "CGC Science Club",
+                    period: "2020 - 2021",
+                    description: "Event & Logistics Manager (Science Club) and Volunteer Commanding Officer (Science Fair & Farewell).",
+                    type: "Experience",
+                    createdAt: new Date().toISOString()
+                }
+            ];
+            await experienceCollection.insertMany(initialExperience);
+            console.log("Education & Experience migrated to MongoDB!");
+        }
+    } catch (error) {
+        console.error("MongoDB connection error:", error);
+        process.exit(1); // Exit so the hosting provider can restart the service
+    }
+}
+
+// SPA Catch-all: serve React app for all non-API routes
+// The Admin panel is now handled inside the React application
+app.get('*', (req, res) => {
+    const indexPath = path.join(DIST_DIR, 'index.html');
+    res.sendFile(indexPath, (err) => {
+        if (err) {
+            // dist not built yet — send a redirect hint
+            res.status(503).send(`
+                <!DOCTYPE html>
+                <html><head><title>Building...</title></head>
+                <body style="font-family:sans-serif;text-align:center;padding:60px;background:#0f172a;color:#e2e8f0">
+                <h2>🔧 Portfolio is building...</h2>
+                <p>Run <code>npm run build</code> then restart the server.</p>
+                </body></html>`);
+        }
+    });
+});
+
+
+const PORT = process.env.PORT || 3000;
+
+// Start server and connect to database
+connectDB().then(() => {
+    app.listen(PORT, () => {
+        console.log(`Server running on http://localhost:${PORT}`);
     });
 }).catch(err => {
     console.error("Failed to connect to database:", err);
     process.exit(1);
 });
-/ /   t r i g g e r   r e d e p l o y  
- 
