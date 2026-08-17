@@ -1,14 +1,13 @@
 require('dotenv').config();
+const express = require('express');
 const cors = require('cors');
-app.use(cors({ origin: '*', credentials: true }));
 const { MongoClient, ObjectId } = require('mongodb');
-const cors = require('cors');
 const path = require('path');
 const nodemailer = require('nodemailer');
 const { Resend } = require('resend');
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: '*', credentials: true }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
@@ -583,7 +582,8 @@ app.post('/api/auth/google/verify', async (req, res) => {
         });
     } catch (error) {
         console.error('Google verify error:', error);
-        res.status(401).json({ error: 'Invalid Google token' });
+        const errMsg = error && error.message ? error.message : 'Invalid Google token';
+        res.status(401).json({ error: errMsg, details: error?.stack || null });
     }
 });
 
