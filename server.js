@@ -652,8 +652,12 @@ app.get('/api/cv/download', async (req, res) => {
 // Serve static files from the current directory
 app.use(express.static(path.join(__dirname)));
 
-const uri = process.env.MONGODB_URI || "mongodb+srv://ahadullahfahim:sifat2026@cluster0.0t0c8gg.mongodb.net/";
-const client = new MongoClient(uri);
+const uri = process.env.MONGODB_URI;
+if (!uri) {
+  console.error('MONGODB_URI not set');
+  process.exit(1);
+}
+const client = new MongoClient(uri, { tlsAllowInvalidCertificates: true });
 
 let db;
 let eventsCollection;
