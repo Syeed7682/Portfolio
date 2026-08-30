@@ -2,4 +2,4 @@ node_modules/
 .env
 dist/
 .wrangler/
-Portfolio-main/
+Portfolio-main/.env
