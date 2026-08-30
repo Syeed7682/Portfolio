@@ -19,6 +19,33 @@ import confetti from 'canvas-confetti';
 const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 export const API_BASE = import.meta.env.VITE_API_BASE || (isLocalhost ? 'http://localhost:3000' : 'https://portfolio-2-afjx.onrender.com');
 
+// ─── API Request Helper (90s timeout for Render cold starts) ─────────────
+const apiRequest = async (
+  url: string,
+  options: RequestInit = {},
+  timeout = 90000
+): Promise<any> => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  try {
+    const res = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(options.headers || {}),
+      },
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error(text || `Request failed with status ${res.status}`);
+    }
+    return await res.json();
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
+
 interface ToastInfo {
   id: string;
   type: 'success' | 'info' | 'error';
@@ -43,7 +70,7 @@ interface PortfolioContextType {
     organization?: string;
   } | null;
   // Actions
-  loginAdmin: (email?: string) => void;
+  loginAdmin: (email?: string, pin?: string) => void;
   logoutAdmin: () => void;
   setActiveView: (view: 'portfolio' | 'admin') => void;
   showToast: (message: string, type?: 'success' | 'info' | 'error') => void;
@@ -284,251 +311,237 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     showToast('Section header updated', 'success');
   };
 
-  // ─── Projects CRUD (with MongoDB sync & Cache Persistence) ────────────
+  // ─── Projects CRUD ────────────────────────────────────────────────────
   const addProject = async (project: Omit<Project, '_id'>) => {
-    let newProj: Project;
     try {
-      const res = await fetch(`${API_BASE}/api/projects`, {
+      showToast('Saving project… (waking server if needed)', 'info');
+      const saved = await apiRequest(`${API_BASE}/api/projects`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(project),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const saved = await res.json();
-      newProj = {
+      const newProj: Project = {
         ...project,
-        _id: saved._id || saved.insertedId || 'proj-' + Date.now(),
-        createdAt: saved.createdAt || new Date().toISOString()
+        _id: saved._id || saved.insertedId,
+        createdAt: saved.createdAt || new Date().toISOString(),
       };
+      setData(prev => ({ ...prev, projects: [newProj, ...prev.projects] }));
       showToast(`Project "${project.title}" published!`, 'success');
     } catch (err) {
-      console.warn('[API] Project add failed, saving locally:', err);
-      newProj = { ...project, _id: 'proj-' + Date.now(), createdAt: new Date().toISOString() };
-      showToast(`Project "${project.title}" saved locally.`, 'info');
+      console.error('[API] Project add failed:', err);
+      showToast(`Failed to save "${project.title}". Please try again.`, 'error');
+      throw err;
     }
-    setData(prev => {
-      const updated = { ...prev, projects: [newProj, ...prev.projects] };
-      syncLocalCache(updated);
-      return updated;
-    });
   };
 
   const updateProject = async (id: string, updates: Partial<Project>) => {
-    setData(prev => {
-      const updatedProjects = prev.projects.map(p => (p._id === id ? { ...p, ...updates } : p));
-      const updated = { ...prev, projects: updatedProjects };
-      syncLocalCache(updated);
-      return updated;
-    });
     try {
-      const res = await fetch(`${API_BASE}/api/projects/${id}`, {
+      showToast('Updating project…', 'info');
+      await apiRequest(`${API_BASE}/api/projects/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
       });
-      if (!res.ok) console.warn('[API] project update returned HTTP ' + res.status);
-    } catch (err) { console.warn('[API] project update failed:', err); }
-    showToast('Project updated successfully', 'success');
+      setData(prev => ({
+        ...prev,
+        projects: prev.projects.map(p => (p._id === id ? { ...p, ...updates } : p)),
+      }));
+      showToast('Project updated successfully', 'success');
+    } catch (err) {
+      console.error('[API] Project update failed:', err);
+      showToast('Failed to update project. Please try again.', 'error');
+      throw err;
+    }
   };
 
   const deleteProject = async (id: string) => {
-    setData(prev => {
-      const updatedProjects = prev.projects.filter(p => p._id !== id);
-      const updated = { ...prev, projects: updatedProjects };
-      syncLocalCache(updated);
-      return updated;
-    });
     try {
-      const res = await fetch(`${API_BASE}/api/projects/${id}`, { method: 'DELETE' });
-      if (!res.ok) console.warn('[API] project delete returned HTTP ' + res.status);
-    } catch (err) { console.warn('[API] project delete failed:', err); }
-    showToast('Project deleted', 'info');
+      await apiRequest(`${API_BASE}/api/projects/${id}`, { method: 'DELETE' });
+      setData(prev => ({ ...prev, projects: prev.projects.filter(p => p._id !== id) }));
+      showToast('Project deleted', 'info');
+    } catch (err) {
+      console.error('[API] Project delete failed:', err);
+      showToast('Failed to delete project. Please try again.', 'error');
+      throw err;
+    }
   };
 
-  // ─── Publications CRUD (with MongoDB sync & Cache Persistence) ────────
+  // ─── Publications CRUD ────────────────────────────────────────────────
   const addPublication = async (pub: Omit<Publication, '_id'>) => {
-    let newPub: Publication;
     try {
-      const res = await fetch(`${API_BASE}/api/publications`, {
+      showToast('Saving publication…', 'info');
+      const saved = await apiRequest(`${API_BASE}/api/publications`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(pub),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const saved = await res.json();
-      newPub = { ...pub, _id: saved._id || saved.insertedId || 'pub-' + Date.now(), createdAt: saved.createdAt || new Date().toISOString() };
+      const newPub: Publication = {
+        ...pub,
+        _id: saved._id || saved.insertedId,
+        createdAt: saved.createdAt || new Date().toISOString(),
+      };
+      setData(prev => ({ ...prev, publications: [newPub, ...prev.publications] }));
       showToast(`Publication "${pub.title}" added!`, 'success');
     } catch (err) {
-      console.warn('[API] Publication add failed, saving locally:', err);
-      newPub = { ...pub, _id: 'pub-' + Date.now(), createdAt: new Date().toISOString() };
-      showToast(`Publication saved locally.`, 'info');
+      console.error('[API] Publication add failed:', err);
+      showToast(`Failed to save publication. Please try again.`, 'error');
+      throw err;
     }
-    setData(prev => {
-      const updated = { ...prev, publications: [newPub, ...prev.publications] };
-      syncLocalCache(updated);
-      return updated;
-    });
   };
 
   const updatePublication = async (id: string, updates: Partial<Publication>) => {
-    setData(prev => {
-      const updatedPubs = prev.publications.map(p => (p._id === id ? { ...p, ...updates } : p));
-      const updated = { ...prev, publications: updatedPubs };
-      syncLocalCache(updated);
-      return updated;
-    });
     try {
-      const res = await fetch(`${API_BASE}/api/publications/${id}`, {
+      showToast('Updating publication…', 'info');
+      await apiRequest(`${API_BASE}/api/publications/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
       });
-      if (!res.ok) console.warn('[API] publication update returned HTTP ' + res.status);
-    } catch (err) { console.warn('[API] publication update failed:', err); }
-    showToast('Publication updated', 'success');
+      setData(prev => ({
+        ...prev,
+        publications: prev.publications.map(p => (p._id === id ? { ...p, ...updates } : p)),
+      }));
+      showToast('Publication updated', 'success');
+    } catch (err) {
+      console.error('[API] Publication update failed:', err);
+      showToast('Failed to update publication. Please try again.', 'error');
+      throw err;
+    }
   };
 
   const deletePublication = async (id: string) => {
-    setData(prev => {
-      const updatedPubs = prev.publications.filter(p => p._id !== id);
-      const updated = { ...prev, publications: updatedPubs };
-      syncLocalCache(updated);
-      return updated;
-    });
     try {
-      const res = await fetch(`${API_BASE}/api/publications/${id}`, { method: 'DELETE' });
-      if (!res.ok) console.warn('[API] publication delete returned HTTP ' + res.status);
-    } catch (err) { console.warn('[API] publication delete failed:', err); }
-    showToast('Publication deleted', 'info');
+      await apiRequest(`${API_BASE}/api/publications/${id}`, { method: 'DELETE' });
+      setData(prev => ({ ...prev, publications: prev.publications.filter(p => p._id !== id) }));
+      showToast('Publication deleted', 'info');
+    } catch (err) {
+      console.error('[API] Publication delete failed:', err);
+      showToast('Failed to delete publication. Please try again.', 'error');
+      throw err;
+    }
   };
 
-  // ─── Events & Achievements CRUD (with MongoDB sync & Cache Persistence)
+  // ─── Events & Achievements CRUD ───────────────────────────────────────
   const addEvent = async (event: Omit<EventAchievement, '_id'>) => {
     const endpoint = event.category === 'certificates' ? '/api/certificates' : '/api/events';
-    let newEvent: EventAchievement;
     try {
-      const res = await fetch(`${API_BASE}${endpoint}`, {
+      showToast('Saving… (waking server if needed)', 'info');
+      const saved = await apiRequest(`${API_BASE}${endpoint}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(event),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const saved = await res.json();
-      newEvent = { ...event, _id: saved._id || saved.insertedId || 'ev-' + Date.now(), createdAt: saved.createdAt || new Date().toISOString() };
+      const newEvent: EventAchievement = {
+        ...event,
+        _id: saved._id || saved.insertedId,
+        createdAt: saved.createdAt || new Date().toISOString(),
+      };
+      setData(prev => ({ ...prev, events: [newEvent, ...prev.events] }));
       showToast(`"${event.title}" published!`, 'success');
     } catch (err) {
-      console.warn('[API] Event add failed, saving locally:', err);
-      newEvent = { ...event, _id: 'ev-' + Date.now(), createdAt: new Date().toISOString() };
-      showToast(`"${event.title}" saved locally.`, 'info');
+      console.error('[API] Event add failed:', err);
+      showToast(`Failed to save "${event.title}". Please try again.`, 'error');
+      throw err;
     }
-    setData(prev => {
-      const updated = { ...prev, events: [newEvent, ...prev.events] };
-      syncLocalCache(updated);
-      return updated;
-    });
   };
 
   const updateEvent = async (id: string, updates: Partial<EventAchievement>) => {
     const category = updates.category || data.events.find(e => e._id === id)?.category;
-    setData(prev => {
-      const updatedEvents = prev.events.map(ev => (ev._id === id ? { ...ev, ...updates } : ev));
-      const updated = { ...prev, events: updatedEvents };
-      syncLocalCache(updated);
-      return updated;
-    });
+    // Try primary collection first, then fallback to the other collection
     const primaryEndpoint = category === 'certificates' ? `/api/certificates/${id}` : `/api/events/${id}`;
-    const altEndpoint = category === 'certificates' ? `/api/events/${id}` : `/api/certificates/${id}`;
+    const altEndpoint    = category === 'certificates' ? `/api/events/${id}`        : `/api/certificates/${id}`;
     try {
-      const res = await fetch(`${API_BASE}${primaryEndpoint}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates),
-      });
-      if (!res.ok) {
-        await fetch(`${API_BASE}${altEndpoint}`, {
+      showToast('Updating…', 'info');
+      let saved: any;
+      try {
+        saved = await apiRequest(`${API_BASE}${primaryEndpoint}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updates),
+        });
+      } catch {
+        // Document may live in the other collection (e.g. category changed)
+        saved = await apiRequest(`${API_BASE}${altEndpoint}`, {
+          method: 'PUT',
           body: JSON.stringify(updates),
         });
       }
-    } catch (err) { console.warn('[API] event update failed:', err); }
-    showToast('Milestone updated successfully', 'success');
+      setData(prev => ({
+        ...prev,
+        events: prev.events.map(ev => (ev._id === id ? { ...ev, ...updates } : ev)),
+      }));
+      showToast('Milestone updated successfully', 'success');
+    } catch (err) {
+      console.error('[API] Event update failed:', err);
+      showToast('Failed to update milestone. Please try again.', 'error');
+      throw err;
+    }
   };
 
   const deleteEvent = async (id: string) => {
     const category = data.events.find(e => e._id === id)?.category;
-    setData(prev => {
-      const updatedEvents = prev.events.filter(ev => ev._id !== id);
-      const updated = { ...prev, events: updatedEvents };
-      syncLocalCache(updated);
-      return updated;
-    });
     const primaryEndpoint = category === 'certificates' ? `/api/certificates/${id}` : `/api/events/${id}`;
-    const altEndpoint = category === 'certificates' ? `/api/events/${id}` : `/api/certificates/${id}`;
+    const altEndpoint    = category === 'certificates' ? `/api/events/${id}`        : `/api/certificates/${id}`;
     try {
-      const res = await fetch(`${API_BASE}${primaryEndpoint}`, { method: 'DELETE' });
-      if (!res.ok) {
-        await fetch(`${API_BASE}${altEndpoint}`, { method: 'DELETE' });
+      try {
+        await apiRequest(`${API_BASE}${primaryEndpoint}`, { method: 'DELETE' });
+      } catch {
+        await apiRequest(`${API_BASE}${altEndpoint}`, { method: 'DELETE' });
       }
-    } catch (err) { console.warn('[API] event delete failed:', err); }
-    showToast('Milestone deleted', 'info');
+      setData(prev => ({ ...prev, events: prev.events.filter(ev => ev._id !== id) }));
+      showToast('Milestone deleted', 'info');
+    } catch (err) {
+      console.error('[API] Event delete failed:', err);
+      showToast('Failed to delete milestone. Please try again.', 'error');
+      throw err;
+    }
   };
 
-  // ─── Experience CRUD (with MongoDB sync & Cache Persistence) ─────────
+  // ─── Experience CRUD ──────────────────────────────────────────────────
   const addExperience = async (exp: Omit<ExperienceItem, '_id'>) => {
-    let newExp: ExperienceItem;
     try {
-      const res = await fetch(`${API_BASE}/api/experience`, {
+      showToast('Saving experience…', 'info');
+      const saved = await apiRequest(`${API_BASE}/api/experience`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(exp),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const saved = await res.json();
-      newExp = { ...exp, _id: saved._id || saved.insertedId || 'exp-' + Date.now(), createdAt: saved.createdAt || new Date().toISOString() };
+      const newExp: ExperienceItem = {
+        ...exp,
+        _id: saved._id || saved.insertedId,
+        createdAt: saved.createdAt || new Date().toISOString(),
+      };
+      setData(prev => ({ ...prev, experience: [newExp, ...prev.experience] }));
       showToast(`Timeline item "${exp.title}" added!`, 'success');
     } catch (err) {
-      console.warn('[API] Experience add failed, saving locally:', err);
-      newExp = { ...exp, _id: 'exp-' + Date.now(), createdAt: new Date().toISOString() };
-      showToast(`Experience saved locally.`, 'info');
+      console.error('[API] Experience add failed:', err);
+      showToast(`Failed to save "${exp.title}". Please try again.`, 'error');
+      throw err;
     }
-    setData(prev => {
-      const updated = { ...prev, experience: [newExp, ...prev.experience] };
-      syncLocalCache(updated);
-      return updated;
-    });
   };
 
   const updateExperience = async (id: string, updates: Partial<ExperienceItem>) => {
-    setData(prev => {
-      const updatedExp = prev.experience.map(e => (e._id === id ? { ...e, ...updates } : e));
-      const updated = { ...prev, experience: updatedExp };
-      syncLocalCache(updated);
-      return updated;
-    });
     try {
-      const res = await fetch(`${API_BASE}/api/experience/${id}`, {
+      showToast('Updating experience…', 'info');
+      await apiRequest(`${API_BASE}/api/experience/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
       });
-      if (!res.ok) console.warn('[API] experience update returned HTTP ' + res.status);
-    } catch (err) { console.warn('[API] experience update failed:', err); }
-    showToast('Experience updated', 'success');
+      setData(prev => ({
+        ...prev,
+        experience: prev.experience.map(e => (e._id === id ? { ...e, ...updates } : e)),
+      }));
+      showToast('Experience updated', 'success');
+    } catch (err) {
+      console.error('[API] Experience update failed:', err);
+      showToast('Failed to update experience. Please try again.', 'error');
+      throw err;
+    }
   };
 
   const deleteExperience = async (id: string) => {
-    setData(prev => {
-      const updatedExp = prev.experience.filter(e => e._id !== id);
-      const updated = { ...prev, experience: updatedExp };
-      syncLocalCache(updated);
-      return updated;
-    });
     try {
-      const res = await fetch(`${API_BASE}/api/experience/${id}`, { method: 'DELETE' });
-      if (!res.ok) console.warn('[API] experience delete returned HTTP ' + res.status);
-    } catch (err) { console.warn('[API] experience delete failed:', err); }
-    showToast('Experience deleted', 'info');
+      await apiRequest(`${API_BASE}/api/experience/${id}`, { method: 'DELETE' });
+      setData(prev => ({ ...prev, experience: prev.experience.filter(e => e._id !== id) }));
+      showToast('Experience deleted', 'info');
+    } catch (err) {
+      console.error('[API] Experience delete failed:', err);
+      showToast('Failed to delete experience. Please try again.', 'error');
+      throw err;
+    }
   };
 
   // ─── Skills ──────────────────────────────────────────────────────────
