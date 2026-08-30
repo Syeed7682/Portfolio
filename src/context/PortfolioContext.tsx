@@ -159,8 +159,8 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           skillCategories: liveConfig.skillCategories || initialPortfolioData.skillCategories,
         });
         // Load admin credentials from config if present
-        setAdminEmail(liveConfig.adminEmail || '');
-        setAdminPin(liveConfig.adminPin || '');
+        setAdminEmail(liveConfig.adminEmail || 'kmsyeedasif@gmail.com');
+        setAdminPin(liveConfig.adminPin || import.meta.env.VITE_ADMIN_PIN || '2026');
         console.log('[Portfolio] Live data loaded from MongoDB ✓');
       } catch (err) {
         console.warn('[Portfolio] Could not fetch live data, using defaults:', err);
