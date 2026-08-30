@@ -160,42 +160,43 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     // Intentionally left blank – data persistence handled by MongoDB.
   };
 
+  // Reusable data fetcher — called on mount AND after every CRUD mutation
+  const fetchLiveData = async () => {
+    setIsLoadingData(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/portfolio-data?_=${Date.now()}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const live = await res.json();
+      const mergedEvents = [
+        ...(live.events || []),
+        ...(live.certs || []),
+      ];
+      const liveConfig = live.config || {};
+      setData({
+        ...initialPortfolioData,
+        projects: live.projects || [],
+        publications: live.publications || [],
+        events: mergedEvents,
+        experience: live.experience || [],
+        theme: liveConfig.theme || initialPortfolioData.theme,
+        hero: liveConfig.hero || initialPortfolioData.hero,
+        about: liveConfig.about || initialPortfolioData.about,
+        cv: liveConfig.cv || initialPortfolioData.cv,
+        sections: liveConfig.sections || initialPortfolioData.sections,
+        skillCategories: liveConfig.skillCategories || initialPortfolioData.skillCategories,
+      });
+      setAdminEmail(liveConfig.adminEmail || 'kmsyeedasif@gmail.com');
+      setAdminPin(liveConfig.adminPin || import.meta.env.VITE_ADMIN_PIN || '2026');
+      console.log('[Portfolio] Live data loaded from MongoDB ✓');
+    } catch (err) {
+      console.warn('[Portfolio] Could not fetch live data, using defaults:', err);
+      setData(initialPortfolioData);
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchLiveData = async () => {
-      setIsLoadingData(true);
-      try {
-        const res = await fetch(`${API_BASE}/api/portfolio-data`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const live = await res.json();
-        const mergedEvents = [
-          ...(live.events || []),
-          ...(live.certs || []),
-        ];
-        const liveConfig = live.config || {};
-        setData({
-          ...initialPortfolioData,
-          projects: live.projects || [],
-          publications: live.publications || [],
-          events: mergedEvents,
-          experience: live.experience || [],
-          theme: liveConfig.theme || initialPortfolioData.theme,
-          hero: liveConfig.hero || initialPortfolioData.hero,
-          about: liveConfig.about || initialPortfolioData.about,
-          cv: liveConfig.cv || initialPortfolioData.cv,
-          sections: liveConfig.sections || initialPortfolioData.sections,
-          skillCategories: liveConfig.skillCategories || initialPortfolioData.skillCategories,
-        });
-        // Load admin credentials from config if present
-        setAdminEmail(liveConfig.adminEmail || 'kmsyeedasif@gmail.com');
-        setAdminPin(liveConfig.adminPin || import.meta.env.VITE_ADMIN_PIN || '2026');
-        console.log('[Portfolio] Live data loaded from MongoDB ✓');
-      } catch (err) {
-        console.warn('[Portfolio] Could not fetch live data, using defaults:', err);
-        setData(initialPortfolioData);
-      } finally {
-        setIsLoadingData(false);
-      }
-    };
     fetchLiveData();
   }, []);
 
@@ -315,16 +316,11 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const addProject = async (project: Omit<Project, '_id'>) => {
     try {
       showToast('Saving project… (waking server if needed)', 'info');
-      const saved = await apiRequest(`${API_BASE}/api/projects`, {
+      await apiRequest(`${API_BASE}/api/projects`, {
         method: 'POST',
         body: JSON.stringify(project),
       });
-      const newProj: Project = {
-        ...project,
-        _id: saved._id || saved.insertedId,
-        createdAt: saved.createdAt || new Date().toISOString(),
-      };
-      setData(prev => ({ ...prev, projects: [newProj, ...prev.projects] }));
+      await fetchLiveData();
       showToast(`Project "${project.title}" published!`, 'success');
     } catch (err) {
       console.error('[API] Project add failed:', err);
@@ -340,10 +336,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         method: 'PUT',
         body: JSON.stringify(updates),
       });
-      setData(prev => ({
-        ...prev,
-        projects: prev.projects.map(p => (p._id === id ? { ...p, ...updates } : p)),
-      }));
+      await fetchLiveData();
       showToast('Project updated successfully', 'success');
     } catch (err) {
       console.error('[API] Project update failed:', err);
@@ -355,7 +348,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const deleteProject = async (id: string) => {
     try {
       await apiRequest(`${API_BASE}/api/projects/${id}`, { method: 'DELETE' });
-      setData(prev => ({ ...prev, projects: prev.projects.filter(p => p._id !== id) }));
+      await fetchLiveData();
       showToast('Project deleted', 'info');
     } catch (err) {
       console.error('[API] Project delete failed:', err);
@@ -368,16 +361,11 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const addPublication = async (pub: Omit<Publication, '_id'>) => {
     try {
       showToast('Saving publication…', 'info');
-      const saved = await apiRequest(`${API_BASE}/api/publications`, {
+      await apiRequest(`${API_BASE}/api/publications`, {
         method: 'POST',
         body: JSON.stringify(pub),
       });
-      const newPub: Publication = {
-        ...pub,
-        _id: saved._id || saved.insertedId,
-        createdAt: saved.createdAt || new Date().toISOString(),
-      };
-      setData(prev => ({ ...prev, publications: [newPub, ...prev.publications] }));
+      await fetchLiveData();
       showToast(`Publication "${pub.title}" added!`, 'success');
     } catch (err) {
       console.error('[API] Publication add failed:', err);
@@ -393,10 +381,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         method: 'PUT',
         body: JSON.stringify(updates),
       });
-      setData(prev => ({
-        ...prev,
-        publications: prev.publications.map(p => (p._id === id ? { ...p, ...updates } : p)),
-      }));
+      await fetchLiveData();
       showToast('Publication updated', 'success');
     } catch (err) {
       console.error('[API] Publication update failed:', err);
@@ -408,7 +393,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const deletePublication = async (id: string) => {
     try {
       await apiRequest(`${API_BASE}/api/publications/${id}`, { method: 'DELETE' });
-      setData(prev => ({ ...prev, publications: prev.publications.filter(p => p._id !== id) }));
+      await fetchLiveData();
       showToast('Publication deleted', 'info');
     } catch (err) {
       console.error('[API] Publication delete failed:', err);
@@ -422,16 +407,11 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const endpoint = event.category === 'certificates' ? '/api/certificates' : '/api/events';
     try {
       showToast('Saving… (waking server if needed)', 'info');
-      const saved = await apiRequest(`${API_BASE}${endpoint}`, {
+      await apiRequest(`${API_BASE}${endpoint}`, {
         method: 'POST',
         body: JSON.stringify(event),
       });
-      const newEvent: EventAchievement = {
-        ...event,
-        _id: saved._id || saved.insertedId,
-        createdAt: saved.createdAt || new Date().toISOString(),
-      };
-      setData(prev => ({ ...prev, events: [newEvent, ...prev.events] }));
+      await fetchLiveData();
       showToast(`"${event.title}" published!`, 'success');
     } catch (err) {
       console.error('[API] Event add failed:', err);
@@ -442,28 +422,22 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const updateEvent = async (id: string, updates: Partial<EventAchievement>) => {
     const category = updates.category || data.events.find(e => e._id === id)?.category;
-    // Try primary collection first, then fallback to the other collection
     const primaryEndpoint = category === 'certificates' ? `/api/certificates/${id}` : `/api/events/${id}`;
     const altEndpoint    = category === 'certificates' ? `/api/events/${id}`        : `/api/certificates/${id}`;
     try {
       showToast('Updating…', 'info');
-      let saved: any;
       try {
-        saved = await apiRequest(`${API_BASE}${primaryEndpoint}`, {
+        await apiRequest(`${API_BASE}${primaryEndpoint}`, {
           method: 'PUT',
           body: JSON.stringify(updates),
         });
       } catch {
-        // Document may live in the other collection (e.g. category changed)
-        saved = await apiRequest(`${API_BASE}${altEndpoint}`, {
+        await apiRequest(`${API_BASE}${altEndpoint}`, {
           method: 'PUT',
           body: JSON.stringify(updates),
         });
       }
-      setData(prev => ({
-        ...prev,
-        events: prev.events.map(ev => (ev._id === id ? { ...ev, ...updates } : ev)),
-      }));
+      await fetchLiveData();
       showToast('Milestone updated successfully', 'success');
     } catch (err) {
       console.error('[API] Event update failed:', err);
@@ -482,7 +456,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       } catch {
         await apiRequest(`${API_BASE}${altEndpoint}`, { method: 'DELETE' });
       }
-      setData(prev => ({ ...prev, events: prev.events.filter(ev => ev._id !== id) }));
+      await fetchLiveData();
       showToast('Milestone deleted', 'info');
     } catch (err) {
       console.error('[API] Event delete failed:', err);
@@ -495,16 +469,11 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const addExperience = async (exp: Omit<ExperienceItem, '_id'>) => {
     try {
       showToast('Saving experience…', 'info');
-      const saved = await apiRequest(`${API_BASE}/api/experience`, {
+      await apiRequest(`${API_BASE}/api/experience`, {
         method: 'POST',
         body: JSON.stringify(exp),
       });
-      const newExp: ExperienceItem = {
-        ...exp,
-        _id: saved._id || saved.insertedId,
-        createdAt: saved.createdAt || new Date().toISOString(),
-      };
-      setData(prev => ({ ...prev, experience: [newExp, ...prev.experience] }));
+      await fetchLiveData();
       showToast(`Timeline item "${exp.title}" added!`, 'success');
     } catch (err) {
       console.error('[API] Experience add failed:', err);
@@ -520,10 +489,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         method: 'PUT',
         body: JSON.stringify(updates),
       });
-      setData(prev => ({
-        ...prev,
-        experience: prev.experience.map(e => (e._id === id ? { ...e, ...updates } : e)),
-      }));
+      await fetchLiveData();
       showToast('Experience updated', 'success');
     } catch (err) {
       console.error('[API] Experience update failed:', err);
@@ -535,7 +501,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const deleteExperience = async (id: string) => {
     try {
       await apiRequest(`${API_BASE}/api/experience/${id}`, { method: 'DELETE' });
-      setData(prev => ({ ...prev, experience: prev.experience.filter(e => e._id !== id) }));
+      await fetchLiveData();
       showToast('Experience deleted', 'info');
     } catch (err) {
       console.error('[API] Experience delete failed:', err);
