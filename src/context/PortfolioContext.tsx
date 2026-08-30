@@ -161,8 +161,8 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   // Reusable data fetcher — called on mount AND after every CRUD mutation
-  const fetchLiveData = async () => {
-    setIsLoadingData(true);
+  const fetchLiveData = async (showLoadingScreen = true) => {
+    if (showLoadingScreen) setIsLoadingData(true);
     try {
       const res = await fetch(`${API_BASE}/api/portfolio-data?_=${Date.now()}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -192,7 +192,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       console.warn('[Portfolio] Could not fetch live data, using defaults:', err);
       setData(initialPortfolioData);
     } finally {
-      setIsLoadingData(false);
+      if (showLoadingScreen) setIsLoadingData(false);
     }
   };
 
@@ -320,7 +320,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         method: 'POST',
         body: JSON.stringify(project),
       });
-      await fetchLiveData();
+      await fetchLiveData(false);
       showToast(`Project "${project.title}" published!`, 'success');
     } catch (err) {
       console.error('[API] Project add failed:', err);
@@ -336,7 +336,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         method: 'PUT',
         body: JSON.stringify(updates),
       });
-      await fetchLiveData();
+      await fetchLiveData(false);
       showToast('Project updated successfully', 'success');
     } catch (err) {
       console.error('[API] Project update failed:', err);
@@ -348,7 +348,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const deleteProject = async (id: string) => {
     try {
       await apiRequest(`${API_BASE}/api/projects/${id}`, { method: 'DELETE' });
-      await fetchLiveData();
+      await fetchLiveData(false);
       showToast('Project deleted', 'info');
     } catch (err) {
       console.error('[API] Project delete failed:', err);
@@ -365,7 +365,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         method: 'POST',
         body: JSON.stringify(pub),
       });
-      await fetchLiveData();
+      await fetchLiveData(false);
       showToast(`Publication "${pub.title}" added!`, 'success');
     } catch (err) {
       console.error('[API] Publication add failed:', err);
@@ -381,7 +381,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         method: 'PUT',
         body: JSON.stringify(updates),
       });
-      await fetchLiveData();
+      await fetchLiveData(false);
       showToast('Publication updated', 'success');
     } catch (err) {
       console.error('[API] Publication update failed:', err);
@@ -393,7 +393,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const deletePublication = async (id: string) => {
     try {
       await apiRequest(`${API_BASE}/api/publications/${id}`, { method: 'DELETE' });
-      await fetchLiveData();
+      await fetchLiveData(false);
       showToast('Publication deleted', 'info');
     } catch (err) {
       console.error('[API] Publication delete failed:', err);
@@ -411,7 +411,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         method: 'POST',
         body: JSON.stringify(event),
       });
-      await fetchLiveData();
+      await fetchLiveData(false);
       showToast(`"${event.title}" published!`, 'success');
     } catch (err) {
       console.error('[API] Event add failed:', err);
@@ -437,7 +437,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           body: JSON.stringify(updates),
         });
       }
-      await fetchLiveData();
+      await fetchLiveData(false);
       showToast('Milestone updated successfully', 'success');
     } catch (err) {
       console.error('[API] Event update failed:', err);
@@ -456,7 +456,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       } catch {
         await apiRequest(`${API_BASE}${altEndpoint}`, { method: 'DELETE' });
       }
-      await fetchLiveData();
+      await fetchLiveData(false);
       showToast('Milestone deleted', 'info');
     } catch (err) {
       console.error('[API] Event delete failed:', err);
@@ -473,7 +473,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         method: 'POST',
         body: JSON.stringify(exp),
       });
-      await fetchLiveData();
+      await fetchLiveData(false);
       showToast(`Timeline item "${exp.title}" added!`, 'success');
     } catch (err) {
       console.error('[API] Experience add failed:', err);
@@ -489,7 +489,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         method: 'PUT',
         body: JSON.stringify(updates),
       });
-      await fetchLiveData();
+      await fetchLiveData(false);
       showToast('Experience updated', 'success');
     } catch (err) {
       console.error('[API] Experience update failed:', err);
@@ -501,7 +501,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const deleteExperience = async (id: string) => {
     try {
       await apiRequest(`${API_BASE}/api/experience/${id}`, { method: 'DELETE' });
-      await fetchLiveData();
+      await fetchLiveData(false);
       showToast('Experience deleted', 'info');
     } catch (err) {
       console.error('[API] Experience delete failed:', err);
