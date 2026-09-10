@@ -45,7 +45,8 @@ const MainPortfolioView: React.FC = () => {
   const { data, activeView, setActiveView, isAdmin, toast, isLoadingData } = usePortfolio();
   const [showLoginModal, setShowLoginModal] = useState(false);
 
-  if (isLoadingData) return <LoadingScreen />;
+  // Only show full-screen loader for admin authentication/routing if needed, never block public visitors
+  if (activeView === 'admin' && isLoadingData && !data) return <LoadingScreen />;
 
   // Re-order and render sections dynamically
   const sortedSections = [...data.sections]

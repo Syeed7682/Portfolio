@@ -123,10 +123,32 @@ interface PortfolioContextType {
 
 const AUTH_KEY = 'syeed_portfolio_isAdmin';
 
+const CACHE_KEY = 'syeed_portfolio_cached_data_v2';
+
+const getInitialData = (): PortfolioData => {
+  if (typeof window !== 'undefined') {
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && parsed.hero && parsed.projects) {
+          return {
+            ...initialPortfolioData,
+            ...parsed,
+          };
+        }
+      }
+    } catch (e) {
+      console.warn('[Cache] Could not parse local cache:', e);
+    }
+  }
+  return initialPortfolioData;
+};
+
 const PortfolioContext = createContext<PortfolioContextType | undefined>(undefined);
 
 export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [data, setData] = useState<PortfolioData>(initialPortfolioData);
+  const [data, setData] = useState<PortfolioData>(getInitialData);
 
   const [isAdmin, setIsAdmin] = useState<boolean>(() => {
     return sessionStorage.getItem(AUTH_KEY) === 'true';
@@ -141,7 +163,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [toast, setToast] = useState<ToastInfo | null>(null);
   const [selectedMediaModal, setSelectedMediaModal] = useState<PortfolioContextType['selectedMediaModal']>(null);
 
-  // Fetch live data from MongoDB on mount (no localStorage fallback)
+  // Fetch live data from MongoDB on mount
   const saveConfigToBackend = async (partialConfig: Record<string, any>) => {
     try {
       await fetch(`${API_BASE}/api/config`, {
@@ -155,16 +177,16 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
-  // No-op sync function (kept for compatibility)
-  const syncLocalCache = (newData: PortfolioData) => {
-    // Intentionally left blank – data persistence handled by MongoDB.
-  };
+  // Reusable data fetcher — called on mount (silent) AND after CRUD mutations
+  const fetchLiveData = async (silent = false) => {
+    if (!silent) setIsLoadingData(true);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-  // Reusable data fetcher — called on mount AND after every CRUD mutation
-  const fetchLiveData = async () => {
-    setIsLoadingData(true);
     try {
-      const res = await fetch(`${API_BASE}/api/portfolio-data?_=${Date.now()}`);
+      const res = await fetch(`${API_BASE}/api/portfolio-data`, {
+        signal: controller.signal,
+      });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const live = await res.json();
       const mergedEvents = [
@@ -172,7 +194,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         ...(live.certs || []),
       ];
       const liveConfig = live.config || {};
-      setData({
+      const updatedData: PortfolioData = {
         ...initialPortfolioData,
         projects: live.projects || [],
         publications: live.publications || [],
@@ -184,20 +206,31 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         cv: liveConfig.cv || initialPortfolioData.cv,
         sections: liveConfig.sections || initialPortfolioData.sections,
         skillCategories: liveConfig.skillCategories || initialPortfolioData.skillCategories,
-      });
+      };
+
+      setData(updatedData);
+
+      // Cache fresh data locally for instant subsequent visits
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify(updatedData));
+      } catch (e) {
+        // quota exceeded or private mode
+      }
+
       setAdminEmail(liveConfig.adminEmail || 'kmsyeedasif@gmail.com');
       setAdminPin(liveConfig.adminPin || import.meta.env.VITE_ADMIN_PIN || '5264');
-      console.log('[Portfolio] Live data loaded from MongoDB ✓');
+      console.log('[Portfolio] Live data loaded and cached ✓');
     } catch (err) {
-      console.warn('[Portfolio] Could not fetch live data, using defaults:', err);
-      setData(initialPortfolioData);
+      console.warn('[Portfolio] Live fetch deferred (backend waking up or offline). Displaying instant cached data.');
     } finally {
+      clearTimeout(timeoutId);
       setIsLoadingData(false);
     }
   };
 
   useEffect(() => {
-    fetchLiveData();
+    // Silent initial fetch: renders immediately without blocking UI with loading screen
+    fetchLiveData(true);
   }, []);
 
   // Removed localStorage sync for config.
