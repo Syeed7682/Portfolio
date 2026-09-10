@@ -82,7 +82,7 @@ export const Navbar: React.FC = () => {
       <nav
         className={`fixed top-0 w-full z-40 transition-all duration-300 ${
           isScrolled
-            ? 'bg-slate-950/80 dark:bg-slate-950/85 bg-white/80 backdrop-blur-xl border-b border-slate-200/20 dark:border-white/10 shadow-lg shadow-black/5 dark:shadow-purple-950/10 py-3'
+            ? 'bg-white/85 dark:bg-slate-950/85 backdrop-blur-xl border-b border-slate-200/80 dark:border-white/10 shadow-sm dark:shadow-purple-950/10 py-3'
             : 'bg-transparent py-5'
         }`}
       >
@@ -96,10 +96,10 @@ export const Navbar: React.FC = () => {
               <span className="font-bold text-sm">SA</span>
             </div>
             <div className="flex flex-col">
-              <span className="leading-none text-base font-bold font-sans">
+              <span className="leading-none text-base font-bold font-sans text-slate-900 dark:text-white">
                 Syeed<span className="text-purple-500">.</span>
               </span>
-              <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-widest font-mono">
+              <span className="text-[10px] text-slate-600 dark:text-slate-400 uppercase tracking-widest font-mono font-medium">
                 Portfolio
               </span>
             </div>
@@ -113,10 +113,10 @@ export const Navbar: React.FC = () => {
                 <a
                   key={sec.id}
                   href={`#${sec.id}`}
-                  className={`text-[13px] font-semibold transition-colors duration-200 ${
+                  className={`text-[13px] transition-colors duration-200 ${
                     isActive
-                      ? 'text-slate-900 dark:text-white'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                      ? 'text-purple-600 dark:text-purple-400 font-bold'
+                      : 'text-slate-700 dark:text-slate-300 hover:text-purple-600 dark:hover:text-white font-medium'
                   }`}
                 >
                   {sec.label}
@@ -136,7 +136,7 @@ export const Navbar: React.FC = () => {
                 onMouseEnter={handleCvMouseEnter}
                 onMouseMove={handleCvMouseMove}
                 onMouseLeave={handleCvMouseLeave}
-                className="relative inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-pink-500 shadow-md hover:scale-[1.02] active:scale-95 transition-all"
+                className="relative inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-pink-500 shadow-md hover:shadow-purple-500/25 hover:scale-[1.02] active:scale-95 transition-all"
               >
                 <FileDown className="w-3.5 h-3.5" />
                 <span>Hire Me</span>
@@ -144,10 +144,10 @@ export const Navbar: React.FC = () => {
             )}
 
             {/* Admin Panel Toggle */}
-{isAdmin && (
+            {isAdmin && (
               <button
                 onClick={() => setActiveView('admin')}
-                className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
+                className="p-2 rounded-xl text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white transition-colors"
                 title="Open Admin Dashboard & Customizer"
               >
                 <LayoutDashboard className="w-5 h-5" />
@@ -157,11 +157,11 @@ export const Navbar: React.FC = () => {
             {/* Theme Toggle */}
             <button
               onClick={toggleThemeMode}
-              className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
+              className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white border border-slate-200/80 dark:border-white/10 transition-colors shadow-sm"
               aria-label="Toggle Theme"
               title="Toggle Light / Dark mode"
             >
-              {data.theme.mode === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              {data.theme.mode === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
             </button>
           </div>
 

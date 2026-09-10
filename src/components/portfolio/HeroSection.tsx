@@ -78,9 +78,9 @@ export const HeroSection: React.FC = () => {
     <section id="home" className="relative min-h-[92vh] flex items-center justify-center pt-28 pb-16 overflow-hidden">
       {/* Animated Mesh Gradients */}
       <div className="mesh-bg-container">
-        <div className="mesh-blob w-[50vw] h-[50vw] -top-[15%] -left-[10%] bg-purple-600/20 dark:bg-purple-900/30" />
-        <div className="mesh-blob w-[45vw] h-[45vw] top-[30%] -right-[15%] bg-blue-600/20 dark:bg-indigo-900/25" style={{ animationDelay: '3s' }} />
-        <div className="mesh-blob w-[55vw] h-[55vw] -bottom-[20%] left-[20%] bg-pink-600/15 dark:bg-pink-900/20" style={{ animationDelay: '6s' }} />
+        <div className="mesh-blob w-[50vw] h-[50vw] -top-[15%] -left-[10%] bg-purple-500/12 dark:bg-purple-900/30" />
+        <div className="mesh-blob w-[45vw] h-[45vw] top-[30%] -right-[15%] bg-cyan-500/12 dark:bg-indigo-900/25" style={{ animationDelay: '3s' }} />
+        <div className="mesh-blob w-[55vw] h-[55vw] -bottom-[20%] left-[20%] bg-pink-500/10 dark:bg-pink-900/20" style={{ animationDelay: '6s' }} />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
@@ -89,15 +89,15 @@ export const HeroSection: React.FC = () => {
           <div className="lg:col-span-7 text-center lg:text-left space-y-6">
             {/* Status Pill */}
             {hero.availableBadgeText && (
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold bg-white/70 dark:bg-slate-900/80 border border-slate-200/80 dark:border-white/10 backdrop-blur-md text-slate-800 dark:text-slate-200 shadow-sm">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold bg-white/90 dark:bg-slate-900/80 border border-slate-200/90 dark:border-white/10 backdrop-blur-md text-slate-800 dark:text-slate-200 shadow-sm">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse ring-4 ring-emerald-500/20" />
                 <span>{hero.availableBadgeText}</span>
               </div>
             )}
 
             {/* Main Greeting and Name */}
             <div className="space-y-2">
-              <p className="text-base sm:text-lg font-semibold text-slate-900 dark:text-slate-200 tracking-wide">
+              <p className="text-base sm:text-lg font-semibold text-slate-800 dark:text-slate-200 tracking-wide">
                 {hero.greetingText}
               </p>
               <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-normal text-slate-950 dark:text-white leading-[1.15]">
@@ -109,23 +109,21 @@ export const HeroSection: React.FC = () => {
 
             {/* Typewriter Dynamic Title (no leftover cursor) */}
             <div className="h-10 sm:h-12 flex items-center justify-center lg:justify-start">
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-slate-800 dark:text-slate-100 tracking-tight">
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
                 <span>{currentText}</span>
               </h2>
             </div>
 
-            {/* Bio Paragraph - High contrast dark gray on light theme */}
-            <p className="text-base sm:text-lg text-slate-800 dark:text-slate-200 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
+            {/* Bio Paragraph - High contrast dark slate on light theme */}
+            <p className="text-base sm:text-lg text-slate-700 dark:text-slate-300 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
               {hero.bio}
             </p>
 
-
-
-            {/* CTA Buttons */}
+            {/* CTA Buttons - Balanced and unified */}
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-4">
               <a
                 href={hero.primaryCtaLink || '#contact'}
-                className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-slate-950 text-white dark:bg-white dark:text-slate-950 font-bold text-sm shadow-md hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-slate-950 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-100 dark:text-slate-950 font-bold text-sm shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
               >
                 <span>Get In Touch</span>
               </a>
@@ -138,7 +136,7 @@ export const HeroSection: React.FC = () => {
                 onMouseEnter={handleCvMouseEnter}
                 onMouseMove={handleCvMouseMove}
                 onMouseLeave={handleCvMouseLeave}
-                className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-sm shadow-md hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm shadow-md hover:shadow-purple-500/25 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
               >
                 <FileDown className="w-4 h-4" />
                 <span>Hire Me (CV)</span>
@@ -146,7 +144,7 @@ export const HeroSection: React.FC = () => {
 
               <a
                 href={hero.secondaryCtaLink || '#portfolio'}
-                className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-300 dark:border-white/10 font-bold text-sm shadow-sm hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-white/90 hover:bg-slate-100 dark:bg-slate-900/90 dark:hover:bg-slate-800 text-slate-800 dark:text-white border border-slate-300/80 dark:border-white/10 font-bold text-sm shadow-sm hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
               >
                 <span>View My Work</span>
               </a>
@@ -159,7 +157,7 @@ export const HeroSection: React.FC = () => {
                   href={ensureAbsoluteUrl(hero.githubUrl)}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-10 h-10 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-slate-300/80 dark:border-white/10 text-slate-800 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 hover:border-purple-300 dark:hover:border-purple-500/40 shadow-sm backdrop-blur-md flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+                  className="w-11 h-11 rounded-2xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 hover:border-purple-300 dark:hover:border-purple-500/40 shadow-sm hover:shadow backdrop-blur-md flex items-center justify-center transition-all hover:scale-110 active:scale-95"
                   aria-label="GitHub Profile"
                 >
                   <Github className="w-5 h-5" />
@@ -170,7 +168,7 @@ export const HeroSection: React.FC = () => {
                   href={ensureAbsoluteUrl(hero.linkedinUrl)}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-10 h-10 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-slate-300/80 dark:border-white/10 text-slate-800 dark:text-slate-200 hover:text-[#0a66c2] hover:border-[#0a66c2]/40 shadow-sm backdrop-blur-md flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+                  className="w-11 h-11 rounded-2xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:text-[#0a66c2] hover:border-[#0a66c2]/40 shadow-sm hover:shadow backdrop-blur-md flex items-center justify-center transition-all hover:scale-110 active:scale-95"
                   aria-label="LinkedIn Profile"
                 >
                   <Linkedin className="w-5 h-5" />
@@ -181,7 +179,7 @@ export const HeroSection: React.FC = () => {
                   href={ensureAbsoluteUrl(hero.facebookUrl)}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-10 h-10 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-slate-300/80 dark:border-white/10 text-slate-800 dark:text-slate-200 hover:text-[#1877f2] hover:border-[#1877f2]/40 shadow-sm backdrop-blur-md flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+                  className="w-11 h-11 rounded-2xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:text-[#1877f2] hover:border-[#1877f2]/40 shadow-sm hover:shadow backdrop-blur-md flex items-center justify-center transition-all hover:scale-110 active:scale-95"
                   aria-label="Facebook Profile"
                 >
                   <Facebook className="w-5 h-5" />
@@ -194,11 +192,11 @@ export const HeroSection: React.FC = () => {
           <div className="lg:col-span-5 flex justify-center relative">
             <div className="relative group">
               {/* Outer Glowing Ring */}
-              <div className="absolute -inset-4 rounded-full bg-gradient-to-tr from-purple-600 via-pink-500 to-cyan-400 opacity-60 blur-2xl group-hover:opacity-85 transition duration-700 animate-pulse" />
+              <div className="absolute -inset-4 rounded-full bg-gradient-to-tr from-purple-600/50 via-pink-500/40 to-cyan-400/40 dark:from-purple-600 dark:via-pink-500 dark:to-cyan-400 opacity-60 blur-2xl group-hover:opacity-85 transition duration-700 animate-pulse" />
 
               {/* Photo Frame */}
               <div className="relative w-64 h-64 sm:w-80 sm:h-80 lg:w-92 lg:h-92 rounded-full p-2 bg-gradient-to-tr from-purple-500 via-pink-500 to-cyan-400 shadow-2xl">
-                <div className="w-full h-full rounded-full overflow-hidden bg-slate-900 border-4 border-slate-950">
+                <div className="w-full h-full rounded-full overflow-hidden bg-slate-900 border-4 border-white dark:border-slate-950 shadow-inner">
                   <img
                     src={resolveImageUrl(hero.profileImageUrl)}
                     alt={hero.name}
@@ -212,7 +210,7 @@ export const HeroSection: React.FC = () => {
               </div>
 
               {/* Floating Badge Bottom Right */}
-              <div className="absolute -bottom-4 right-0 sm:right-2 px-5 py-3 rounded-[1.25rem] bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-white/10 backdrop-blur-xl shadow-lg flex items-center gap-3">
+              <div className="absolute -bottom-4 right-0 sm:right-2 px-5 py-3 rounded-2xl bg-white/95 dark:bg-slate-900/95 border border-slate-200/90 dark:border-white/10 backdrop-blur-xl shadow-xl flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center text-purple-600 dark:text-purple-400">
                   <Code2 className="w-4 h-4" />
                 </div>
