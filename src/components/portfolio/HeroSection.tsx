@@ -97,26 +97,25 @@ export const HeroSection: React.FC = () => {
 
             {/* Main Greeting and Name */}
             <div className="space-y-2">
-              <p className="text-base sm:text-lg font-medium text-slate-700 dark:text-slate-400">
+              <p className="text-base sm:text-lg font-semibold text-slate-900 dark:text-slate-200 tracking-wide">
                 {hero.greetingText}
               </p>
-              <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-950 dark:text-white leading-[1.1]">
-                <span className="bg-gradient-to-r from-purple-600 via-pink-500 to-blue-500 bg-clip-text text-transparent">
+              <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-normal text-slate-950 dark:text-white leading-[1.15]">
+                <span className="bg-gradient-to-r from-purple-600 via-pink-500 to-cyan-400 bg-clip-text text-transparent inline-block pb-1">
                   {hero.name}
                 </span>
               </h1>
             </div>
 
-            {/* Typewriter Dynamic Title */}
+            {/* Typewriter Dynamic Title (no leftover cursor) */}
             <div className="h-10 sm:h-12 flex items-center justify-center lg:justify-start">
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-slate-900 dark:text-slate-200">
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-slate-800 dark:text-slate-100 tracking-tight">
                 <span>{currentText}</span>
-                <span className="w-0.5 h-6 bg-slate-900 dark:bg-slate-200 animate-pulse ml-1 inline-block" />
               </h2>
             </div>
 
-            {/* Bio Paragraph */}
-            <p className="text-base sm:text-lg text-slate-700 dark:text-slate-300 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-light">
+            {/* Bio Paragraph - High contrast dark gray on light theme */}
+            <p className="text-base sm:text-lg text-slate-800 dark:text-slate-200 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
               {hero.bio}
             </p>
 
@@ -147,20 +146,20 @@ export const HeroSection: React.FC = () => {
 
               <a
                 href={hero.secondaryCtaLink || '#portfolio'}
-                className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 font-bold text-sm shadow-sm hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-300 dark:border-white/10 font-bold text-sm shadow-sm hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
               >
                 <span>View My Work</span>
               </a>
             </div>
 
-            {/* Social Icons */}
-            <div className="flex items-center justify-center lg:justify-start gap-4 pt-6 text-slate-500 dark:text-slate-400">
+            {/* Social Icons - High contrast and frosted glass buttons */}
+            <div className="flex items-center justify-center lg:justify-start gap-3 pt-6">
               {hero.githubUrl && (
                 <a
                   href={ensureAbsoluteUrl(hero.githubUrl)}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-8 h-8 flex items-center justify-center hover:text-slate-900 dark:hover:text-white transition-colors"
+                  className="w-10 h-10 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-slate-300/80 dark:border-white/10 text-slate-800 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 hover:border-purple-300 dark:hover:border-purple-500/40 shadow-sm backdrop-blur-md flex items-center justify-center transition-all hover:scale-110 active:scale-95"
                   aria-label="GitHub Profile"
                 >
                   <Github className="w-5 h-5" />
@@ -171,7 +170,7 @@ export const HeroSection: React.FC = () => {
                   href={ensureAbsoluteUrl(hero.linkedinUrl)}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-8 h-8 flex items-center justify-center hover:text-[#0a66c2] transition-colors"
+                  className="w-10 h-10 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-slate-300/80 dark:border-white/10 text-slate-800 dark:text-slate-200 hover:text-[#0a66c2] hover:border-[#0a66c2]/40 shadow-sm backdrop-blur-md flex items-center justify-center transition-all hover:scale-110 active:scale-95"
                   aria-label="LinkedIn Profile"
                 >
                   <Linkedin className="w-5 h-5" />
@@ -182,7 +181,7 @@ export const HeroSection: React.FC = () => {
                   href={ensureAbsoluteUrl(hero.facebookUrl)}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-8 h-8 flex items-center justify-center hover:text-[#1877f2] transition-colors"
+                  className="w-10 h-10 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-slate-300/80 dark:border-white/10 text-slate-800 dark:text-slate-200 hover:text-[#1877f2] hover:border-[#1877f2]/40 shadow-sm backdrop-blur-md flex items-center justify-center transition-all hover:scale-110 active:scale-95"
                   aria-label="Facebook Profile"
                 >
                   <Facebook className="w-5 h-5" />
@@ -195,10 +194,10 @@ export const HeroSection: React.FC = () => {
           <div className="lg:col-span-5 flex justify-center relative">
             <div className="relative group">
               {/* Outer Glowing Ring */}
-              <div className="absolute -inset-4 rounded-full bg-gradient-to-tr from-purple-600 via-pink-500 to-blue-500 opacity-60 blur-2xl group-hover:opacity-80 transition duration-700 animate-pulse" />
+              <div className="absolute -inset-4 rounded-full bg-gradient-to-tr from-purple-600 via-pink-500 to-cyan-400 opacity-60 blur-2xl group-hover:opacity-85 transition duration-700 animate-pulse" />
 
               {/* Photo Frame */}
-              <div className="relative w-64 h-64 sm:w-80 sm:h-80 lg:w-92 lg:h-92 rounded-full p-2 bg-gradient-to-tr from-purple-500 via-pink-500 to-indigo-500 shadow-2xl">
+              <div className="relative w-64 h-64 sm:w-80 sm:h-80 lg:w-92 lg:h-92 rounded-full p-2 bg-gradient-to-tr from-purple-500 via-pink-500 to-cyan-400 shadow-2xl">
                 <div className="w-full h-full rounded-full overflow-hidden bg-slate-900 border-4 border-slate-950">
                   <img
                     src={resolveImageUrl(hero.profileImageUrl)}

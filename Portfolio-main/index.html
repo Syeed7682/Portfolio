@@ -160,9 +160,9 @@
             transition: all 0.3s ease;
         }
 
-        /* Interactive Text Gradient */
+        /* Interactive Text Gradient (Purple-Pink-Cyan) */
         .text-gradient {
-            background: linear-gradient(to right, #a855f7, #ec4899, #3b82f6);
+            background: linear-gradient(to right, #9333ea, #ec4899, #06b6d4);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
@@ -184,18 +184,15 @@
             }
         }
 
-        /* Typing Effect with Blinking Cursor */
+        /* Typing Container */
         .typing-container {
             display: inline-block;
             position: relative;
         }
 
         .typing-container::after {
-            content: '|';
-            position: absolute;
-            right: -8px;
-            animation: blink 1s step-end infinite;
-            color: #a855f7;
+            display: none;
+            content: '';
         }
 
         @keyframes blink {
@@ -446,21 +443,21 @@
                 <!-- Text Content -->
                 <div class="lg:w-1/2 text-center lg:text-left z-10 reveal active">
                     <div
-                        class="inline-block px-4 py-1.5 rounded-full border border-gray-300 dark:border-white/10 bg-white/50 dark:bg-black/30 backdrop-blur-md text-xs font-semibold tracking-widest uppercase mb-6 text-gray-700 dark:text-gray-300 shadow-sm">
-                        <i class="fa-solid fa-bolt text-yellow-500 mr-2"></i> Available for opportunities
+                        class="inline-block px-4 py-1.5 rounded-full border border-gray-300 dark:border-white/10 bg-white/80 dark:bg-black/40 backdrop-blur-md text-xs font-semibold tracking-widest uppercase mb-6 text-gray-800 dark:text-gray-200 shadow-sm">
+                        <i class="fa-solid fa-bolt text-amber-500 mr-2"></i> Available for opportunities
                     </div>
 
                     <h1
-                        class="font-display text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight mb-4 text-gray-900 dark:text-white">
-                        Hi, I'm <br />
-                        <span class="text-gradient">Kha. Mo. Syeed Asif</span>
+                        class="font-display text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight mb-4 text-gray-950 dark:text-white tracking-normal">
+                        <span class="text-gray-900 dark:text-gray-100 block mb-1">Hi, I'm</span>
+                        <span class="text-gradient inline-block">Kha. Mo. Syeed Asif</span>
                     </h1>
 
-                    <h2 class="text-2xl sm:text-3xl font-medium text-gray-600 dark:text-gray-400 mb-6 h-10">
-                        <span id="typewriter" class="typing-container text-gray-900 dark:text-white"></span>
+                    <h2 class="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-gray-100 mb-6 h-10">
+                        <span id="typewriter" class="typing-container text-gray-900 dark:text-gray-100">Associate Executive @ EWURC</span>
                     </h2>
 
-                    <p class="text-lg text-gray-600 dark:text-gray-400 mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                    <p class="text-lg text-gray-800 dark:text-gray-200 mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed font-normal">
                         I'm a passionate full-stack developer and data scientist focused on building innovative
                         solutions that solve real-world problems.
                     </p>
@@ -477,20 +474,20 @@
                             <i class="fa-solid fa-file-arrow-down"></i> Hire Me (CV)
                         </a>
                         <a href="#portfolio"
-                            class="w-full sm:w-auto px-8 py-3.5 glass-card bg-white/60 dark:bg-white/5 text-gray-900 dark:text-white font-semibold rounded-lg hover:bg-white/90 dark:hover:bg-white/10 transition-all border border-gray-300 dark:border-white/20 shadow-sm">
+                            class="w-full sm:w-auto px-8 py-3.5 glass-card bg-white/80 dark:bg-white/5 text-gray-900 dark:text-white font-semibold rounded-lg hover:bg-white/95 dark:hover:bg-white/10 transition-all border border-gray-300 dark:border-white/20 shadow-sm">
                             View My Work
                         </a>
                     </div>
 
-                    <div class="flex items-center gap-6 mt-12 justify-center lg:justify-start">
+                    <div class="flex items-center gap-4 mt-12 justify-center lg:justify-start">
                         <a href="https://github.com/Syeed7682" target="_blank"
-                            class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transform hover:-translate-y-1 transition-all text-2xl"><i
+                            class="w-11 h-11 rounded-xl bg-white/90 dark:bg-black/50 border border-gray-300 dark:border-white/15 text-gray-800 hover:text-purple-600 dark:text-gray-200 dark:hover:text-purple-400 shadow-sm flex items-center justify-center transition-all hover:scale-110 text-xl" aria-label="GitHub Profile"><i
                                 class="fab fa-github"></i></a>
                         <a href="https://www.linkedin.com/in/kha-mo-syeed-asif/" target="_blank"
-                            class="text-gray-500 hover:text-[#0a66c2] dark:text-gray-400 dark:hover:text-[#0a66c2] transform hover:-translate-y-1 transition-all text-2xl"><i
+                            class="w-11 h-11 rounded-xl bg-white/90 dark:bg-black/50 border border-gray-300 dark:border-white/15 text-gray-800 hover:text-[#0a66c2] dark:text-gray-200 dark:hover:text-[#0a66c2] shadow-sm flex items-center justify-center transition-all hover:scale-110 text-xl" aria-label="LinkedIn Profile"><i
                                 class="fab fa-linkedin"></i></a>
                         <a href="https://www.facebook.com/sye.ed.5264/" target="_blank"
-                            class="text-gray-500 hover:text-[#1877f2] dark:text-gray-400 dark:hover:text-[#1877f2] transform hover:-translate-y-1 transition-all text-2xl"><i
+                            class="w-11 h-11 rounded-xl bg-white/90 dark:bg-black/50 border border-gray-300 dark:border-white/15 text-gray-800 hover:text-[#1877f2] dark:text-gray-200 dark:hover:text-[#1877f2] shadow-sm flex items-center justify-center transition-all hover:scale-110 text-xl" aria-label="Facebook Profile"><i
                                 class="fab fa-facebook"></i></a>
                     </div>
                 </div>
