@@ -59,6 +59,13 @@ export const ThemeCustomizer: React.FC = () => {
       accent: '#3b82f6',
       previewClass: 'from-blue-600 via-indigo-600 to-purple-600',
     },
+    {
+      id: 'midnight',
+      name: 'Midnight Slate',
+      gradient: 'linear-gradient(135deg, #64748b 0%, #475569 50%, #334155 100%)',
+      accent: '#64748b',
+      previewClass: 'from-slate-500 via-slate-600 to-zinc-700',
+    },
   ];
 
   const handleSelectPreset = (p: typeof presets[0]) => {
