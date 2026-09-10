@@ -14,6 +14,7 @@ import {
   AboutConfig
 } from '../types';
 import { initialPortfolioData } from '../data/initialData';
+import { getThemePreset } from '../utils/themeUtils';
 import confetti from 'canvas-confetti';
 
 const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
@@ -236,8 +237,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Removed localStorage sync for config.
 
 
-  // Apply dark mode class to document
-  // Apply dark mode class to document
+  // Apply dark mode class and theme preset variables to document
   useEffect(() => {
     const isDark = data.theme.mode === 'dark';
     if (isDark) {
@@ -245,7 +245,12 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     } else {
       document.documentElement.classList.remove('dark');
     }
-  }, [data.theme.mode]);
+
+    const preset = getThemePreset(data.theme.preset);
+    document.documentElement.setAttribute('data-preset', data.theme.preset || 'purple');
+    document.documentElement.style.setProperty('--theme-accent', data.theme.accentColor || preset.accent);
+    document.documentElement.style.setProperty('--theme-gradient', data.theme.accentGradient || preset.gradient);
+  }, [data.theme.mode, data.theme.preset, data.theme.accentColor, data.theme.accentGradient]);
 
   // Live data is fetched on mount. Admin modifications trigger targeted state updates and re-fetches.
 
@@ -291,8 +296,12 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const updateTheme = (newTheme: Partial<SiteTheme>) => {
     setData(prev => {
       const updatedTheme = { ...prev.theme, ...newTheme };
+      const updatedData = { ...prev, theme: updatedTheme };
       saveConfigToBackend({ theme: updatedTheme });
-      return { ...prev, theme: updatedTheme };
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify(updatedData));
+      } catch (e) {}
+      return updatedData;
     });
     showToast('Theme updated in real-time!', 'success');
   };

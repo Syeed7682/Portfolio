@@ -11,21 +11,23 @@ import {
 } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { resolveImageUrl } from '../../utils/urlUtils';
+import { getThemePreset } from '../../utils/themeUtils';
 
 export const AboutSection: React.FC = () => {
   const { data } = usePortfolio();
   const about = data.about;
+  const themePreset = getThemePreset(data.theme.preset);
   const sectionConfig = data.sections.find(s => s.id === 'about');
 
   if (sectionConfig && !sectionConfig.isVisible) return null;
 
   const getStatIcon = (iconName: string) => {
     switch (iconName) {
-      case 'Brain': return <Brain className="w-5 h-5 text-purple-400" />;
+      case 'Brain': return <Brain className={`w-5 h-5 ${themePreset.textAccent}`} />;
       case 'BookOpen': return <BookOpen className="w-5 h-5 text-pink-400" />;
       case 'Users': return <Users className="w-5 h-5 text-blue-400" />;
       case 'Trophy': return <Trophy className="w-5 h-5 text-amber-400" />;
-      default: return <Sparkles className="w-5 h-5 text-purple-400" />;
+      default: return <Sparkles className={`w-5 h-5 ${themePreset.textAccent}`} />;
     }
   };
 
@@ -34,8 +36,8 @@ export const AboutSection: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-600 dark:text-purple-300 border border-purple-500/20 uppercase tracking-wider">
-            <Sparkles className="w-3 h-3 text-purple-400" />
+          <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${themePreset.badgeBg} ${themePreset.badgeText} border ${themePreset.badgeBorder} uppercase tracking-wider`}>
+            <Sparkles className={`w-3 h-3 ${themePreset.textAccent}`} />
             <span>{sectionConfig?.badgeTitle || 'Background'}</span>
           </div>
           <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-950 dark:text-white">
@@ -52,7 +54,7 @@ export const AboutSection: React.FC = () => {
         <div className="grid lg:grid-cols-12 gap-12 items-center">
           {/* Visual Showcase Card */}
           <div className="lg:col-span-5 relative group">
-            <div className="absolute -inset-2 rounded-3xl bg-gradient-to-r from-purple-600 to-pink-600 opacity-30 blur-xl group-hover:opacity-50 transition duration-500" />
+            <div className={`absolute -inset-2 rounded-3xl bg-gradient-to-r ${themePreset.gradientText} opacity-30 blur-xl group-hover:opacity-50 transition duration-500`} />
             <div className="relative h-full min-h-[300px] sm:min-h-[400px] rounded-3xl overflow-hidden shadow-2xl">
               <img
                 src={resolveImageUrl(about.coverImageUrl)}
@@ -60,7 +62,7 @@ export const AboutSection: React.FC = () => {
                 className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent flex flex-col justify-end p-6">
-                <span className="text-xs font-semibold text-purple-400 uppercase tracking-widest mb-1">
+                <span className={`text-xs font-semibold uppercase tracking-widest mb-1 ${themePreset.textAccent}`}>
                   East West University
                 </span>
                 <p className="text-base sm:text-lg font-bold text-white leading-snug">
@@ -76,7 +78,7 @@ export const AboutSection: React.FC = () => {
               <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
                 {about.heading}
               </h3>
-              <p className="text-xs sm:text-sm font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider">
+              <p className={`text-xs font-semibold uppercase tracking-wider ${themePreset.textAccent}`}>
                 {about.subheading}
               </p>
               <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed font-light">
@@ -92,9 +94,8 @@ export const AboutSection: React.FC = () => {
               {about.stats.map((stat, idx) => (
                 <div
                   key={idx}
-                  className="p-5 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-white/10 backdrop-blur-md text-center hover:border-purple-500/40 hover:-translate-y-1 transition-all duration-300 shadow-sm"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mx-auto mb-2.5">
+                  className={`p-5 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-white/10 backdrop-blur-md text-center hover:${themePreset.borderAccent}/40 hover:-translate-y-1 transition-all duration-300 shadow-sm`}>
+                  <div className={`w-10 h-10 rounded-xl ${themePreset.badgeBg} border ${themePreset.badgeBorder} flex items-center justify-center mx-auto mb-2.5`}>
                     {getStatIcon(stat.icon)}
                   </div>
                   <p className="text-2xl font-extrabold text-slate-950 dark:text-white tracking-tight">

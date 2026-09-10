@@ -10,10 +10,12 @@ import {
   LayoutDashboard
 } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
+import { getThemePreset } from '../../utils/themeUtils';
 import { CvHoverPopup } from '../common/CvHoverPopup';
 
 export const Navbar: React.FC = () => {
   const { data, updateTheme, setActiveView, isAdmin } = usePortfolio();
+  const themePreset = getThemePreset(data.theme.preset);
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -75,7 +77,7 @@ export const Navbar: React.FC = () => {
     <>
       {/* Scroll Progress Line */}
       <div
-        className="fixed top-0 left-0 h-[3px] bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 z-50 transition-all duration-100 ease-out"
+        className={`fixed top-0 left-0 h-[3px] bg-gradient-to-r ${themePreset.gradientText} z-50 transition-all duration-100 ease-out`}
         style={{ width: `${scrollProgress}%` }}
       />
 
@@ -90,14 +92,14 @@ export const Navbar: React.FC = () => {
           {/* Logo */}
           <a
             href="#home"
-            className="flex items-center gap-2 group font-semibold text-xl tracking-tight text-slate-900 dark:text-white"
+            className="flex items-center gap-2 group font-semibold text-xl tracking-tight text-slate-950 dark:text-white"
           >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 via-pink-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-purple-500/20 group-hover:scale-105 transition-transform">
+            <div className={`w-9 h-9 rounded-xl bg-gradient-to-tr ${themePreset.buttonGradient} flex items-center justify-center text-white shadow-md shadow-purple-500/20 group-hover:scale-105 transition-transform`}>
               <span className="font-bold text-sm">SA</span>
             </div>
             <div className="flex flex-col">
               <span className="leading-none text-base font-bold font-sans text-slate-900 dark:text-white">
-                Syeed<span className="text-purple-500">.</span>
+                Syeed<span className={themePreset.textAccent}>.</span>
               </span>
               <span className="text-[10px] text-slate-600 dark:text-slate-400 uppercase tracking-widest font-mono font-medium">
                 Portfolio
@@ -115,8 +117,8 @@ export const Navbar: React.FC = () => {
                   href={`#${sec.id}`}
                   className={`text-[13px] transition-colors duration-200 ${
                     isActive
-                      ? 'text-purple-600 dark:text-purple-400 font-bold'
-                      : 'text-slate-700 dark:text-slate-300 hover:text-purple-600 dark:hover:text-white font-medium'
+                      ? `${themePreset.textAccent} font-bold`
+                      : `text-slate-700 dark:text-slate-300 ${themePreset.textAccentHover} dark:hover:text-white font-medium`
                   }`}
                 >
                   {sec.label}
@@ -136,7 +138,7 @@ export const Navbar: React.FC = () => {
                 onMouseEnter={handleCvMouseEnter}
                 onMouseMove={handleCvMouseMove}
                 onMouseLeave={handleCvMouseLeave}
-                className="relative inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-pink-500 shadow-md hover:shadow-purple-500/25 hover:scale-[1.02] active:scale-95 transition-all"
+                className={`relative inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold text-white bg-gradient-to-r ${themePreset.buttonGradient} shadow-md hover:scale-[1.02] active:scale-95 transition-all`}
               >
                 <FileDown className="w-3.5 h-3.5" />
                 <span>Hire Me</span>
@@ -194,7 +196,7 @@ export const Navbar: React.FC = () => {
                   onClick={() => setMobileMenuOpen(false)}
                   className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                     activeSection === sec.id
-                      ? 'bg-purple-600 text-white'
+                      ? `${themePreset.bgAccent} text-white font-bold`
                       : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'
                   }`}
                 >
@@ -210,9 +212,9 @@ export const Navbar: React.FC = () => {
                     setMobileMenuOpen(false);
                     setActiveView('admin');
                   }}
-                  className="w-full py-2.5 px-4 rounded-xl bg-purple-600/20 text-purple-300 border border-purple-500/30 font-semibold text-xs flex items-center justify-center gap-2"
+                  className={`w-full py-2.5 px-4 rounded-xl ${themePreset.badgeBg} ${themePreset.textAccent} border ${themePreset.badgeBorder} font-semibold text-xs flex items-center justify-center gap-2`}
                 >
-                  <Settings className="w-4 h-4 text-purple-400" />
+                  <Settings className="w-4 h-4" />
                   Admin Dashboard & Live Customizer
                 </button>
               )}
@@ -222,7 +224,7 @@ export const Navbar: React.FC = () => {
                   href={data.cv.fileUrl || '#contact'}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold text-xs flex items-center justify-center gap-2 text-center"
+                  className={`w-full py-2.5 px-4 rounded-xl bg-gradient-to-r ${themePreset.buttonGradient} text-white font-semibold text-xs flex items-center justify-center gap-2 text-center`}
                 >
                   <FileDown className="w-4 h-4" />
                   Download CV / Resume

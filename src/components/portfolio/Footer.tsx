@@ -1,9 +1,11 @@
 import React from 'react';
 import { ArrowUp, Github, Linkedin, Facebook, Mail, Sparkles, Heart } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
+import { getThemePreset } from '../../utils/themeUtils';
 
 export const Footer: React.FC = () => {
   const { data, isAdmin } = usePortfolio();
+  const themePreset = getThemePreset(data.theme.preset);
   const hero = data.hero;
 
   const scrollToTop = () => {
@@ -30,7 +32,7 @@ export const Footer: React.FC = () => {
                 href={hero.githubUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-white/10 flex items-center justify-center hover:text-slate-950 dark:hover:text-white hover:border-purple-400 transition-colors"
+                className={`w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-white/10 flex items-center justify-center hover:text-slate-950 dark:hover:text-white hover:${themePreset.borderAccent} transition-colors`}
                 aria-label="GitHub"
               >
                 <Github className="w-4 h-4" />
@@ -60,7 +62,7 @@ export const Footer: React.FC = () => {
             )}
             <a
               href={`mailto:${hero.email}`}
-              className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-white/10 flex items-center justify-center hover:text-purple-400 hover:border-purple-400 transition-colors"
+              className={`w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-white/10 flex items-center justify-center hover:${themePreset.borderAccent} transition-colors ${themePreset.textAccentHover}`}
               aria-label="Email"
             >
               <Mail className="w-4 h-4" />
@@ -69,7 +71,7 @@ export const Footer: React.FC = () => {
             {/* Back to Top */}
             <button
               onClick={scrollToTop}
-              className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-pink-600 text-white flex items-center justify-center hover:scale-105 transition-transform ml-2"
+              className={`w-9 h-9 rounded-xl bg-gradient-to-tr ${themePreset.buttonGradient} text-white flex items-center justify-center hover:scale-105 transition-transform ml-2`}
               title="Back to Top"
             >
               <ArrowUp className="w-4 h-4" />
@@ -87,7 +89,7 @@ export const Footer: React.FC = () => {
                 href="/admin"
                 target="_blank"
                 rel="noreferrer"
-                className="text-slate-400 hover:text-purple-400 transition-colors"
+                className={`transition-colors ${themePreset.textAccentHover} text-slate-400`}
               >
                 Admin Dashboard
               </a>
@@ -95,7 +97,7 @@ export const Footer: React.FC = () => {
             </>
           )}
             <span className="flex items-center gap-1">
-              Built with precision <Sparkles className="w-3 h-3 text-purple-400" />
+              Built with precision <Sparkles className={`w-3 h-3 ${themePreset.textAccent}`} />
             </span>
           </div>
         </div>

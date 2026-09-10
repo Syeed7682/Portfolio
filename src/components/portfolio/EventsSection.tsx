@@ -6,9 +6,11 @@ import {
 } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { resolveImageUrl } from '../../utils/urlUtils';
+import { getThemePreset } from '../../utils/themeUtils';
 
 export const EventsSection: React.FC = () => {
   const { data, openMediaModal } = usePortfolio();
+  const themePreset = getThemePreset(data.theme.preset);
   const sectionConfig = data.sections.find(s => s.id === 'events');
   const [filter, setFilter] = useState<'all' | 'events' | 'certificates' | 'awards'>('all');
 
@@ -26,8 +28,8 @@ export const EventsSection: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-12 space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20 uppercase tracking-wider">
-            <Trophy className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+          <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${themePreset.badgeBg} ${themePreset.badgeText} border ${themePreset.badgeBorder} uppercase tracking-wider`}>
+            <Trophy className={`w-3 h-3 ${themePreset.textAccent}`} />
             <span>{sectionConfig?.badgeTitle || 'Milestones'}</span>
           </div>
           <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">
@@ -55,7 +57,7 @@ export const EventsSection: React.FC = () => {
               return (
                 <div
                   key={item._id}
-                  className="group cursor-pointer rounded-3xl overflow-hidden bg-white/70 dark:bg-slate-900/60 border border-slate-200/80 dark:border-white/10 backdrop-blur-xl hover:border-purple-500/50 hover:shadow-2xl hover:shadow-purple-500/15 hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between"
+                  className={`group cursor-pointer rounded-3xl overflow-hidden bg-white/70 dark:bg-slate-900/60 border border-slate-200/80 dark:border-white/10 backdrop-blur-xl hover:${themePreset.borderAccent}/50 hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between`}
                 >
                   {/* Media Container */}
                   <div
@@ -94,25 +96,25 @@ export const EventsSection: React.FC = () => {
 
                     {/* Category Pill */}
                     <div className="absolute top-4 left-4 z-10">
-                      <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-950/80 backdrop-blur-md text-purple-300 border border-purple-500/30">
+                       <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-950/80 backdrop-blur-md border ${themePreset.badgeText} ${themePreset.badgeBorder}`}>
                         {item.category === 'events' ? 'Event' : item.category === 'awards' ? 'Award' : 'Certificate'}
                       </span>
                     </div>
 
                     {isVideo && (
-                      <div className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-purple-600/80 text-white flex items-center justify-center">
+                      <div className={`absolute top-4 right-4 z-10 w-8 h-8 rounded-full ${themePreset.bgAccent}/80 text-white flex items-center justify-center`}>
                         <Play className="w-3.5 h-3.5 fill-white" />
                       </div>
                     )}
 
                     {/* Bottom title text overlay */}
                     <div className="absolute bottom-4 left-4 right-4 z-10 space-y-1">
-                      <h3 className="text-base font-bold text-white leading-snug group-hover:text-purple-300 transition-colors">
+                      <h3 className={`text-base font-bold text-white leading-snug transition-colors group-hover:${themePreset.badgeText}`}>
                         {item.title}
                       </h3>
                       <div className="flex items-center justify-between text-[11px] text-slate-300 font-light">
                         <span>{item.organization || item.date}</span>
-                        <span className="flex items-center gap-1 text-purple-400 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className={`flex items-center gap-1 font-semibold opacity-0 group-hover:opacity-100 transition-opacity ${themePreset.badgeText}`}>
                           <span>Details</span>
                           <Maximize2 className="w-3 h-3" />
                         </span>

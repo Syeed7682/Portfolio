@@ -10,16 +10,18 @@ import {
   Mail, 
   MapPin, 
   Code2, 
-  BrainCircuit,
-  Bot
+  BrainCircuit, 
+  Bot 
 } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { ensureAbsoluteUrl, resolveImageUrl } from '../../utils/urlUtils';
+import { getThemePreset } from '../../utils/themeUtils';
 import { CvHoverPopup } from '../common/CvHoverPopup';
 
 export const HeroSection: React.FC = () => {
   const { data } = usePortfolio();
   const hero = data.hero;
+  const themePreset = getThemePreset(data.theme.preset);
 
   // Typewriter logic
   const [currentTitleIndex, setCurrentTitleIndex] = useState(0);
@@ -76,11 +78,11 @@ export const HeroSection: React.FC = () => {
 
   return (
     <section id="home" className="relative min-h-[92vh] flex items-center justify-center pt-28 pb-16 overflow-hidden">
-      {/* Animated Mesh Gradients */}
+      {/* Animated Mesh Gradients adapting to theme */}
       <div className="mesh-bg-container">
-        <div className="mesh-blob w-[50vw] h-[50vw] -top-[15%] -left-[10%] bg-purple-500/12 dark:bg-purple-900/30" />
-        <div className="mesh-blob w-[45vw] h-[45vw] top-[30%] -right-[15%] bg-cyan-500/12 dark:bg-indigo-900/25" style={{ animationDelay: '3s' }} />
-        <div className="mesh-blob w-[55vw] h-[55vw] -bottom-[20%] left-[20%] bg-pink-500/10 dark:bg-pink-900/20" style={{ animationDelay: '6s' }} />
+        <div className={`mesh-blob w-[50vw] h-[50vw] -top-[15%] -left-[10%] ${themePreset.blobColors.b1}`} />
+        <div className={`mesh-blob w-[45vw] h-[45vw] top-[30%] -right-[15%] ${themePreset.blobColors.b2}`} style={{ animationDelay: '3s' }} />
+        <div className={`mesh-blob w-[55vw] h-[55vw] -bottom-[20%] left-[20%] ${themePreset.blobColors.b3}`} style={{ animationDelay: '6s' }} />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
@@ -101,7 +103,10 @@ export const HeroSection: React.FC = () => {
                 {hero.greetingText}
               </p>
               <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-normal text-slate-950 dark:text-white leading-[1.15]">
-                <span className="bg-gradient-to-r from-purple-600 via-pink-500 to-cyan-400 bg-clip-text text-transparent inline-block pb-1">
+                <span
+                  className={`bg-gradient-to-r ${themePreset.gradientText} bg-clip-text text-transparent inline-block pb-1`}
+                  style={data.theme.accentGradient ? { backgroundImage: data.theme.accentGradient } : undefined}
+                >
                   {hero.name}
                 </span>
               </h1>
@@ -128,7 +133,7 @@ export const HeroSection: React.FC = () => {
                 <span>Get In Touch</span>
               </a>
 
-              {/* Resume / CV with Frosted Glass Hover Popup */}
+              {/* Resume / CV with Dynamic Theme Accent */}
               <a
                 href={data.cv.fileUrl || '#'}
                 target="_blank"
@@ -136,7 +141,8 @@ export const HeroSection: React.FC = () => {
                 onMouseEnter={handleCvMouseEnter}
                 onMouseMove={handleCvMouseMove}
                 onMouseLeave={handleCvMouseLeave}
-                className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm shadow-md hover:shadow-purple-500/25 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+                className={`w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-gradient-to-r ${themePreset.buttonGradient} text-white font-bold text-sm shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2`}
+                style={data.theme.accentGradient ? { backgroundImage: data.theme.accentGradient } : undefined}
               >
                 <FileDown className="w-4 h-4" />
                 <span>Hire Me (CV)</span>
@@ -150,14 +156,14 @@ export const HeroSection: React.FC = () => {
               </a>
             </div>
 
-            {/* Social Icons - High contrast and frosted glass buttons */}
+            {/* Social Icons */}
             <div className="flex items-center justify-center lg:justify-start gap-3 pt-6">
               {hero.githubUrl && (
                 <a
                   href={ensureAbsoluteUrl(hero.githubUrl)}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-11 h-11 rounded-2xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 hover:border-purple-300 dark:hover:border-purple-500/40 shadow-sm hover:shadow backdrop-blur-md flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+                  className={`w-11 h-11 rounded-2xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 ${themePreset.textAccentHover} hover:border-slate-400 dark:hover:border-white/30 shadow-sm hover:shadow backdrop-blur-md flex items-center justify-center transition-all hover:scale-110 active:scale-95`}
                   aria-label="GitHub Profile"
                 >
                   <Github className="w-5 h-5" />
@@ -188,21 +194,26 @@ export const HeroSection: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Profile Photo & Glowing Halo */}
+          {/* Right Profile Photo & Glowing Halo (Theme-Aware) */}
           <div className="lg:col-span-5 flex justify-center relative">
             <div className="relative group">
               {/* Outer Glowing Ring */}
-              <div className="absolute -inset-4 rounded-full bg-gradient-to-tr from-purple-600/50 via-pink-500/40 to-cyan-400/40 dark:from-purple-600 dark:via-pink-500 dark:to-cyan-400 opacity-60 blur-2xl group-hover:opacity-85 transition duration-700 animate-pulse" />
+              <div
+                className={`absolute -inset-4 rounded-full bg-gradient-to-tr ${themePreset.haloGradient} opacity-60 blur-2xl group-hover:opacity-85 transition duration-700 animate-pulse`}
+                style={data.theme.accentGradient ? { backgroundImage: data.theme.accentGradient } : undefined}
+              />
 
               {/* Photo Frame */}
-              <div className="relative w-64 h-64 sm:w-80 sm:h-80 lg:w-92 lg:h-92 rounded-full p-2 bg-gradient-to-tr from-purple-500 via-pink-500 to-cyan-400 shadow-2xl">
+              <div
+                className={`relative w-64 h-64 sm:w-80 sm:h-80 lg:w-92 lg:h-92 rounded-full p-2 bg-gradient-to-tr ${themePreset.gradientText} shadow-2xl`}
+                style={data.theme.accentGradient ? { backgroundImage: data.theme.accentGradient } : undefined}
+              >
                 <div className="w-full h-full rounded-full overflow-hidden bg-slate-900 border-4 border-white dark:border-slate-950 shadow-inner">
                   <img
                     src={resolveImageUrl(hero.profileImageUrl)}
                     alt={hero.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     onError={(e) => {
-                      // Fallback avatar if URL fails
                       (e.target as HTMLElement).style.display = 'none';
                     }}
                   />
@@ -211,7 +222,7 @@ export const HeroSection: React.FC = () => {
 
               {/* Floating Badge Bottom Right */}
               <div className="absolute -bottom-4 right-0 sm:right-2 px-5 py-3 rounded-2xl bg-white/95 dark:bg-slate-900/95 border border-slate-200/90 dark:border-white/10 backdrop-blur-xl shadow-xl flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center text-purple-600 dark:text-purple-400">
+                <div className={`w-8 h-8 rounded-lg ${themePreset.badgeBg} flex items-center justify-center ${themePreset.textAccent}`}>
                   <Code2 className="w-4 h-4" />
                 </div>
                 <div>
