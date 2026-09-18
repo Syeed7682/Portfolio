@@ -126,6 +126,16 @@ const AUTH_KEY = 'syeed_portfolio_isAdmin';
 
 const CACHE_KEY = 'syeed_portfolio_cached_data_v2';
 
+const syncLocalCache = (dataToCache: PortfolioData) => {
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify(dataToCache));
+    } catch (e) {
+      console.warn('[Cache] Could not save to localStorage:', e);
+    }
+  }
+};
+
 const getInitialData = (): PortfolioData => {
   if (typeof window !== 'undefined') {
     try {
@@ -133,9 +143,27 @@ const getInitialData = (): PortfolioData => {
       if (cached) {
         const parsed = JSON.parse(cached);
         if (parsed && parsed.hero && parsed.projects) {
+          let heroBio = parsed.hero.bio;
+          if (heroBio && heroBio.includes("Undergraduate CSE Student")) {
+            heroBio = heroBio.replace("Undergraduate CSE Student", "CSE Graduate");
+          }
+          let aboutSubheading = parsed.about?.subheading;
+          if (aboutSubheading && aboutSubheading.includes("Undergraduate CSE Student")) {
+            aboutSubheading = aboutSubheading.replace("Undergraduate CSE Student", "CSE Graduate");
+          }
           return {
             ...initialPortfolioData,
             ...parsed,
+            hero: {
+              ...initialPortfolioData.hero,
+              ...parsed.hero,
+              bio: heroBio,
+            },
+            about: {
+              ...initialPortfolioData.about,
+              ...parsed.about,
+              subheading: aboutSubheading,
+            },
           };
         }
       }
@@ -298,9 +326,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const updatedTheme = { ...prev.theme, ...newTheme };
       const updatedData = { ...prev, theme: updatedTheme };
       saveConfigToBackend({ theme: updatedTheme });
-      try {
-        localStorage.setItem(CACHE_KEY, JSON.stringify(updatedData));
-      } catch (e) {}
+      syncLocalCache(updatedData);
       return updatedData;
     });
     showToast('Theme updated in real-time!', 'success');
@@ -309,8 +335,10 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const updateHero = (heroUpdates: Partial<HeroConfig>) => {
     setData(prev => {
       const updatedHero = { ...prev.hero, ...heroUpdates };
+      const updatedData = { ...prev, hero: updatedHero };
       saveConfigToBackend({ hero: updatedHero });
-      return { ...prev, hero: updatedHero };
+      syncLocalCache(updatedData);
+      return updatedData;
     });
     showToast('Hero section updated!', 'success');
   };
@@ -318,16 +346,20 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const updateAbout = (aboutUpdates: Partial<AboutConfig>) => {
     setData(prev => {
       const updatedAbout = { ...prev.about, ...aboutUpdates };
+      const updatedData = { ...prev, about: updatedAbout };
       saveConfigToBackend({ about: updatedAbout });
-      return { ...prev, about: updatedAbout };
+      syncLocalCache(updatedData);
+      return updatedData;
     });
     showToast('About section updated!', 'success');
   };
 
   const reorderSections = (newSections: SectionConfig[]) => {
     setData(prev => {
+      const updatedData = { ...prev, sections: newSections };
       saveConfigToBackend({ sections: newSections });
-      return { ...prev, sections: newSections };
+      syncLocalCache(updatedData);
+      return updatedData;
     });
     showToast('Layout order updated!', 'info');
   };
@@ -337,8 +369,10 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const newSections = prev.sections.map(sec =>
         sec.id === sectionId ? { ...sec, isVisible: !sec.isVisible } : sec
       );
+      const updatedData = { ...prev, sections: newSections };
       saveConfigToBackend({ sections: newSections });
-      return { ...prev, sections: newSections };
+      syncLocalCache(updatedData);
+      return updatedData;
     });
     showToast('Section visibility toggled', 'info');
   };
@@ -348,8 +382,10 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const newSections = prev.sections.map(sec =>
         sec.id === sectionId ? { ...sec, ...updates } : sec
       );
+      const updatedData = { ...prev, sections: newSections };
       saveConfigToBackend({ sections: newSections });
-      return { ...prev, sections: newSections };
+      syncLocalCache(updatedData);
+      return updatedData;
     });
     showToast('Section header updated', 'success');
   };
@@ -629,8 +665,10 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const updateCV = (cvUpdates: Partial<CVMetadata>) => {
     setData(prev => {
       const updatedCV = { ...prev.cv, ...cvUpdates };
+      const updatedData = { ...prev, cv: updatedCV };
       saveConfigToBackend({ cv: updatedCV });
-      return { ...prev, cv: updatedCV };
+      syncLocalCache(updatedData);
+      return updatedData;
     });
     showToast('CV & Resume information updated!', 'success');
   };
@@ -638,6 +676,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // ─── Global Config ────────────────────────────────────────────────────
   const resetToDefaults = () => {
     setData(initialPortfolioData);
+    syncLocalCache(initialPortfolioData);
     showToast('Portfolio reset to default state', 'info');
   };
 
@@ -647,6 +686,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       return;
     }
     setData(imported);
+    syncLocalCache(imported);
     showToast('Configuration imported successfully!', 'success');
   };
 

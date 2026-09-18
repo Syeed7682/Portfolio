@@ -55,7 +55,7 @@ export const CvHoverPopup: React.FC<CvHoverPopupProps> = ({ position, isVisible 
           <div className="p-3.5 rounded-xl bg-white/5 border border-white/5 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-200">Kha. Mo. Syeed Asif</span>
-              <span className="text-[10px] text-purple-400 font-medium">Undergraduate 2026</span>
+              <span className="text-[10px] text-purple-400 font-semibold">B.Sc. CSE Graduate</span>
             </div>
             <p className="text-[11px] text-slate-400 leading-snug">
               Specialized in RAG systems, PyTorch Deep Learning, and Full-Stack scalable application architectures.

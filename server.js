@@ -760,7 +760,7 @@ async function connectDB() {
                 {
                     title: "B.Sc. in Computer Science & Engineering",
                     institution: "East West University, Dhaka",
-                    period: "Expected 2026",
+                    period: "2022 - 2026",
                     description: "Major: Data Science",
                     type: "Education",
                     createdAt: new Date().toISOString()
