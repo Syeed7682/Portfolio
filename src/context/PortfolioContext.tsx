@@ -223,6 +223,15 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         ...(live.certs || []),
       ];
       const liveConfig = live.config || {};
+      const rawHero = liveConfig.hero || initialPortfolioData.hero;
+      const rawAbout = liveConfig.about || initialPortfolioData.about;
+
+      const heroBio = (rawHero.bio || '').replace(/Undergraduate CSE Student/gi, 'CSE Graduate');
+      const aboutSubheading = (rawAbout.subheading || '').replace(/Undergraduate CSE Student/gi, 'CSE Graduate');
+
+      const updatedHero = { ...initialPortfolioData.hero, ...rawHero, bio: heroBio };
+      const updatedAbout = { ...initialPortfolioData.about, ...rawAbout, subheading: aboutSubheading };
+
       const updatedData: PortfolioData = {
         ...initialPortfolioData,
         projects: live.projects || [],
@@ -230,8 +239,8 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         events: mergedEvents,
         experience: live.experience || [],
         theme: liveConfig.theme || initialPortfolioData.theme,
-        hero: liveConfig.hero || initialPortfolioData.hero,
-        about: liveConfig.about || initialPortfolioData.about,
+        hero: updatedHero,
+        about: updatedAbout,
         cv: liveConfig.cv || initialPortfolioData.cv,
         sections: liveConfig.sections || initialPortfolioData.sections,
         skillCategories: liveConfig.skillCategories || initialPortfolioData.skillCategories,

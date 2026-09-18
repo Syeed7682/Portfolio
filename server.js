@@ -838,6 +838,33 @@ async function connectDB() {
                 { $set: { period: "2022 - 2026" } }
             );
         }
+
+        // Migration: Update stale bio & subheading strings in MongoDB site_config collection
+        if (configCollection) {
+            const config = await configCollection.findOne({ _id: 'global' });
+            if (config) {
+                let updated = false;
+                let newHero = config.hero ? { ...config.hero } : null;
+                let newAbout = config.about ? { ...config.about } : null;
+
+                if (newHero && newHero.bio && /Undergraduate CSE Student/i.test(newHero.bio)) {
+                    newHero.bio = newHero.bio.replace(/Undergraduate CSE Student/gi, "CSE Graduate");
+                    updated = true;
+                }
+                if (newAbout && newAbout.subheading && /Undergraduate CSE Student/i.test(newAbout.subheading)) {
+                    newAbout.subheading = newAbout.subheading.replace(/Undergraduate CSE Student/gi, "CSE Graduate");
+                    updated = true;
+                }
+
+                if (updated) {
+                    await configCollection.updateOne(
+                        { _id: 'global' },
+                        { $set: { hero: newHero, about: newAbout, updatedAt: new Date().toISOString() } }
+                    );
+                    console.log("Migrated site_config in MongoDB to CSE Graduate!");
+                }
+            }
+        }
     } catch (error) {
         console.error("MongoDB connection error:", error);
     }
