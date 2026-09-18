@@ -49,7 +49,7 @@ const safeIdFilter = (idStr) => {
 // Combined Portfolio Data API (with caching and CDN headers)
 app.get('/api/portfolio-data', async (req, res) => {
     try {
-        res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=30, stale-while-revalidate=60');
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         if (portfolioDataCache) {
             console.log('[Cache] Serving portfolio data from in-memory cache');
             return res.json(portfolioDataCache);

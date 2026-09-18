@@ -136,6 +136,21 @@ const syncLocalCache = (dataToCache: PortfolioData) => {
   }
 };
 
+const applyThemeToDocument = (theme?: SiteTheme) => {
+  if (typeof document === 'undefined' || !theme) return;
+  const isDark = theme.mode === 'dark';
+  if (isDark) {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+
+  const preset = getThemePreset(theme.preset);
+  document.documentElement.setAttribute('data-preset', theme.preset || 'purple');
+  document.documentElement.style.setProperty('--theme-accent', theme.accentColor || preset.accent);
+  document.documentElement.style.setProperty('--theme-gradient', theme.accentGradient || preset.gradient);
+};
+
 const getInitialData = (): PortfolioData => {
   if (typeof window !== 'undefined') {
     try {
@@ -143,15 +158,15 @@ const getInitialData = (): PortfolioData => {
       if (cached) {
         const parsed = JSON.parse(cached);
         if (parsed && parsed.hero && parsed.projects) {
-          let heroBio = parsed.hero.bio;
-          if (heroBio && heroBio.includes("Undergraduate CSE Student")) {
-            heroBio = heroBio.replace("Undergraduate CSE Student", "CSE Graduate");
+          let heroBio = parsed.hero.bio || '';
+          if (heroBio.includes("Undergraduate CSE Student")) {
+            heroBio = heroBio.replace(/Undergraduate CSE Student/gi, "CSE Graduate");
           }
-          let aboutSubheading = parsed.about?.subheading;
-          if (aboutSubheading && aboutSubheading.includes("Undergraduate CSE Student")) {
-            aboutSubheading = aboutSubheading.replace("Undergraduate CSE Student", "CSE Graduate");
+          let aboutSubheading = parsed.about?.subheading || '';
+          if (aboutSubheading.includes("Undergraduate CSE Student")) {
+            aboutSubheading = aboutSubheading.replace(/Undergraduate CSE Student/gi, "CSE Graduate");
           }
-          return {
+          const loadedData: PortfolioData = {
             ...initialPortfolioData,
             ...parsed,
             hero: {
@@ -165,12 +180,15 @@ const getInitialData = (): PortfolioData => {
               subheading: aboutSubheading,
             },
           };
+          applyThemeToDocument(loadedData.theme);
+          return loadedData;
         }
       }
     } catch (e) {
       console.warn('[Cache] Could not parse local cache:', e);
     }
   }
+  applyThemeToDocument(initialPortfolioData.theme);
   return initialPortfolioData;
 };
 
@@ -223,37 +241,47 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         ...(live.certs || []),
       ];
       const liveConfig = live.config || {};
-      const rawHero = liveConfig.hero || initialPortfolioData.hero;
-      const rawAbout = liveConfig.about || initialPortfolioData.about;
+
+      // Retrieve current cached state to avoid overwriting user edits with default/incomplete backend config
+      const currentCache = getInitialData();
+
+      const theme: SiteTheme = (liveConfig.theme && Object.keys(liveConfig.theme).length > 0)
+        ? { ...currentCache.theme, ...liveConfig.theme }
+        : currentCache.theme;
+
+      const rawHero = (liveConfig.hero && Object.keys(liveConfig.hero).length > 0)
+        ? { ...currentCache.hero, ...liveConfig.hero }
+        : currentCache.hero;
+
+      const rawAbout = (liveConfig.about && Object.keys(liveConfig.about).length > 0)
+        ? { ...currentCache.about, ...liveConfig.about }
+        : currentCache.about;
 
       const heroBio = (rawHero.bio || '').replace(/Undergraduate CSE Student/gi, 'CSE Graduate');
       const aboutSubheading = (rawAbout.subheading || '').replace(/Undergraduate CSE Student/gi, 'CSE Graduate');
 
-      const updatedHero = { ...initialPortfolioData.hero, ...rawHero, bio: heroBio };
-      const updatedAbout = { ...initialPortfolioData.about, ...rawAbout, subheading: aboutSubheading };
+      const updatedHero = { ...rawHero, bio: heroBio };
+      const updatedAbout = { ...rawAbout, subheading: aboutSubheading };
 
       const updatedData: PortfolioData = {
         ...initialPortfolioData,
-        projects: live.projects || [],
-        publications: live.publications || [],
-        events: mergedEvents,
-        experience: live.experience || [],
-        theme: liveConfig.theme || initialPortfolioData.theme,
+        projects: (live.projects && live.projects.length > 0) ? live.projects : currentCache.projects,
+        publications: (live.publications && live.publications.length > 0) ? live.publications : currentCache.publications,
+        events: (mergedEvents && mergedEvents.length > 0) ? mergedEvents : currentCache.events,
+        experience: (live.experience && live.experience.length > 0) ? live.experience : currentCache.experience,
+        theme,
         hero: updatedHero,
         about: updatedAbout,
-        cv: liveConfig.cv || initialPortfolioData.cv,
-        sections: liveConfig.sections || initialPortfolioData.sections,
-        skillCategories: liveConfig.skillCategories || initialPortfolioData.skillCategories,
+        cv: (liveConfig.cv && Object.keys(liveConfig.cv).length > 0) ? { ...currentCache.cv, ...liveConfig.cv } : currentCache.cv,
+        sections: (liveConfig.sections && liveConfig.sections.length > 0) ? liveConfig.sections : currentCache.sections,
+        skillCategories: (liveConfig.skillCategories && liveConfig.skillCategories.length > 0) ? liveConfig.skillCategories : currentCache.skillCategories,
       };
 
       setData(updatedData);
 
       // Cache fresh data locally for instant subsequent visits
-      try {
-        localStorage.setItem(CACHE_KEY, JSON.stringify(updatedData));
-      } catch (e) {
-        // quota exceeded or private mode
-      }
+      syncLocalCache(updatedData);
+      applyThemeToDocument(updatedData.theme);
 
       setAdminEmail(liveConfig.adminEmail || 'kmsyeedasif@gmail.com');
       setAdminPin(liveConfig.adminPin || import.meta.env.VITE_ADMIN_PIN || '5264');
