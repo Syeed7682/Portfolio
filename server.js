@@ -832,6 +832,11 @@ async function connectDB() {
             ];
             await experienceCollection.insertMany(initialExperience);
             console.log("Education & Experience migrated to MongoDB!");
+        } else {
+            await experienceCollection.updateMany(
+                { period: { $in: ["2022 - Expected 2026", "Expected 2026"] } },
+                { $set: { period: "2022 - 2026" } }
+            );
         }
     } catch (error) {
         console.error("MongoDB connection error:", error);
