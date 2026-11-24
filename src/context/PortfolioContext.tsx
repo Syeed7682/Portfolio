@@ -185,10 +185,51 @@ const applyThemeToDocument = (theme?: SiteTheme) => {
 
 const getInitialData = (): PortfolioData => {
   // ALWAYS return initialPortfolioData as the first render.
-  // This prevents stale localStorage cache from flashing an old theme/photo.
-  // The live MongoDB data will replace this via fetchLiveData() on mount.
+  // This guarantees the correct theme/photo from frame 1 (no purple flash).
+  // Content sections are hydrated from localStorage cache in useEffect (instant),
+  // then replaced with live MongoDB data when the fetch completes.
   applyThemeToDocument(initialPortfolioData.theme);
   return initialPortfolioData;
+};
+
+// Read localStorage cache for content hydration (called in useEffect, NOT in initial state)
+const getCachedContentData = (): PortfolioData | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (!cached) return null;
+    const parsed = JSON.parse(cached);
+    if (!parsed || !parsed.hero || !parsed.projects) return null;
+
+    // Use cached content but FORCE the correct theme from initialPortfolioData
+    // so we never flash an old theme even from cache
+    const safeBio = (parsed.hero?.bio || '').replace(/Undergraduate CSE Student/gi, 'CSE Graduate');
+    const safeSubheading = (parsed.about?.subheading || '').replace(/Undergraduate CSE Student/gi, 'CSE Graduate');
+
+    return {
+      ...initialPortfolioData,
+      ...parsed,
+      // Always enforce the correct theme — never trust cached theme
+      theme: initialPortfolioData.theme,
+      hero: {
+        ...initialPortfolioData.hero,
+        ...parsed.hero,
+        bio: safeBio,
+        // Keep profileImageUrl from cache only if it's a path (not huge base64)
+        profileImageUrl: (parsed.hero.profileImageUrl && parsed.hero.profileImageUrl.length < 10000)
+          ? parsed.hero.profileImageUrl
+          : initialPortfolioData.hero.profileImageUrl,
+      },
+      about: {
+        ...initialPortfolioData.about,
+        ...parsed.about,
+        subheading: safeSubheading,
+      },
+    };
+  } catch (e) {
+    console.warn('[Cache] Could not read cached content:', e);
+    return null;
+  }
 };
 
 const PortfolioContext = createContext<PortfolioContextType | undefined>(undefined);
@@ -292,7 +333,17 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   useEffect(() => {
-    // Silent initial fetch: renders immediately without blocking UI with loading screen
+    // Step 1: Instantly hydrate content from localStorage cache (synchronous, ~0ms)
+    // This fills in projects, experience, publications, etc. without waiting for network
+    const cachedContent = getCachedContentData();
+    if (cachedContent) {
+      setData(cachedContent);
+      applyThemeToDocument(cachedContent.theme);
+      console.log('[Portfolio] Instant cache hydration ✓');
+    }
+
+    // Step 2: Fetch live data from MongoDB (async, may take seconds on cold start)
+    // This replaces cached data with the absolute latest from the database
     fetchLiveData(true);
   }, []);
 
