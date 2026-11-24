@@ -13,12 +13,13 @@ import {
   Mail, 
   MapPin,
   Image as ImageIcon,
-  Code2
+  Code2,
+  RotateCcw
 } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
 
 export const HeroProfileEditor: React.FC = () => {
-  const { data, updateHero, updateAbout, showToast } = usePortfolio();
+  const { data, updateHero, updateAbout, showToast, clearAllCache } = usePortfolio();
   const [heroForm, setHeroForm] = useState({
     ...data.hero,
     floatingBadgeTitle: data.hero.floatingBadgeTitle || 'PASSIONATE',
@@ -122,13 +123,25 @@ export const HeroProfileEditor: React.FC = () => {
           </p>
         </div>
 
-        <button
-          type="submit"
-          className="px-6 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-xs shadow-lg shadow-purple-500/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
-        >
-          <Check className="w-4 h-4" />
-          <span>Save Profile Changes</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={clearAllCache}
+            className="px-4 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-white/10 text-slate-300 hover:text-white font-bold text-xs hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+            title="Delete all old cached data and force-refresh fresh content from MongoDB"
+          >
+            <RotateCcw className="w-4 h-4 text-purple-400" />
+            <span>Purge Old Caches</span>
+          </button>
+
+          <button
+            type="submit"
+            className="px-6 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-xs shadow-lg shadow-purple-500/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+          >
+            <Check className="w-4 h-4" />
+            <span>Save Profile Changes</span>
+          </button>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-12 gap-8">

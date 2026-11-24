@@ -27,14 +27,18 @@
   <link rel="icon" type="image/svg+xml"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%237c3aed'/><text x='50' y='64' font-size='42' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'>S</text></svg>" />
 
-  <!-- Instant Theme Initializer -->
+  <!-- Instant Theme Initializer & Complete Cache Cleaner -->
   <script>
     (function () {
       try {
-        ['syeed_portfolio_cached_data', 'syeed_portfolio_cached_data_v1', 'syeed_portfolio_cached_data_v2', 'syeed_portfolio_cached_data_v3'].forEach(
-          function (k) { localStorage.removeItem(k); }
-        );
-        var cached = localStorage.getItem('syeed_portfolio_cached_data_v4');
+        var currentCacheKey = 'syeed_portfolio_cached_data_v5';
+        for (var i = localStorage.length - 1; i >= 0; i--) {
+          var k = localStorage.key(i);
+          if (k && (k.startsWith('syeed_portfolio_') || k.includes('cached_data')) && k !== currentCacheKey) {
+            localStorage.removeItem(k);
+          }
+        }
+        var cached = localStorage.getItem(currentCacheKey);
         if (cached) {
           var data = JSON.parse(cached);
           if (data && data.theme) {

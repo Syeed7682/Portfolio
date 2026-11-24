@@ -119,18 +119,27 @@ interface PortfolioContextType {
   importConfig: (imported: PortfolioData) => void;
   // Admin Credentials
   updateAdminCredentials: (email: string, pin: string) => void;
+  // Cache Management
+  clearAllCache: () => Promise<void>;
 }
 
 
 const AUTH_KEY = 'syeed_portfolio_isAdmin';
 
-const CACHE_KEY = 'syeed_portfolio_cached_data_v4';
+const CACHE_KEY = 'syeed_portfolio_cached_data_v5';
 
-// Delete all old cache versions so the old design never shows again
+// Purge any and all old cache keys (v1, v2, v3, v4, etc.)
 if (typeof window !== 'undefined') {
-  ['syeed_portfolio_cached_data', 'syeed_portfolio_cached_data_v1', 'syeed_portfolio_cached_data_v2', 'syeed_portfolio_cached_data_v3'].forEach(
-    (oldKey) => localStorage.removeItem(oldKey)
-  );
+  try {
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('syeed_portfolio_cached_data') || key.includes('cached_data')) && key !== CACHE_KEY) {
+        localStorage.removeItem(key);
+      }
+    }
+  } catch (e) {
+    console.warn('[Cache] Could not clean old caches:', e);
+  }
 }
 
 const syncLocalCache = (dataToCache: PortfolioData) => {
@@ -756,6 +765,24 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     showToast('Admin credentials updated successfully', 'success');
   };
 
+  const clearAllCache = async () => {
+    try {
+      if (typeof window !== 'undefined') {
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+          const key = localStorage.key(i);
+          if (key && (key.startsWith('syeed_portfolio_') || key.includes('cached'))) {
+            localStorage.removeItem(key);
+          }
+        }
+      }
+      await fetchLiveData(false);
+      showToast('All old caches cleared successfully!', 'success');
+    } catch (err) {
+      console.error('[Cache] Cache purge error:', err);
+      showToast('Cache cleared locally', 'info');
+    }
+  };
+
   return (
     <PortfolioContext.Provider
       value={{
@@ -773,6 +800,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         showToast,
         openMediaModal,
         closeMediaModal,
+        clearAllCache,
         updateTheme,
         updateHero,
         updateAbout,
