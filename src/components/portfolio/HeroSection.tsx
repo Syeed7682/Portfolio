@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Sparkles, 
   ArrowRight, 
@@ -11,11 +11,7 @@ import {
   MapPin, 
   Code2, 
   BrainCircuit, 
-  Bot,
-  Camera,
-  Upload,
-  Link as LinkIcon,
-  X
+  Bot 
 } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { ensureAbsoluteUrl, resolveImageUrl } from '../../utils/urlUtils';
@@ -23,7 +19,7 @@ import { getThemePreset } from '../../utils/themeUtils';
 import { CvHoverPopup } from '../common/CvHoverPopup';
 
 export const HeroSection: React.FC = () => {
-  const { data, isColdStart, isAdmin, updateHero, showToast } = usePortfolio();
+  const { data, isColdStart } = usePortfolio();
   const hero = data.hero;
   const themePreset = getThemePreset(data.theme.preset);
 
@@ -33,36 +29,6 @@ export const HeroSection: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [cvPopupPos, setCvPopupPos] = useState<{ x: number; y: number } | null>(null);
   const [showCvPopup, setShowCvPopup] = useState(false);
-
-  // Profile pic edit (admin only)
-  const [showImgMenu, setShowImgMenu] = useState(false);
-  const [showUrlInput, setShowUrlInput] = useState(false);
-  const [imgUrlDraft, setImgUrlDraft] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleProfileImageFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 15 * 1024 * 1024) { showToast('Image must be under 15MB', 'error'); return; }
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      if (typeof reader.result === 'string') {
-        updateHero({ profileImageUrl: reader.result });
-        showToast('Profile photo updated!', 'success');
-      }
-    };
-    reader.readAsDataURL(file);
-    setShowImgMenu(false);
-  };
-
-  const handleProfileImageUrl = () => {
-    if (!imgUrlDraft.trim()) return;
-    updateHero({ profileImageUrl: imgUrlDraft.trim() });
-    showToast('Profile photo updated!', 'success');
-    setImgUrlDraft('');
-    setShowUrlInput(false);
-    setShowImgMenu(false);
-  };
 
   useEffect(() => {
     const titles = hero.typewriterTitles.length > 0 ? hero.typewriterTitles : ['Full-Stack Developer & Data Scientist'];
@@ -249,7 +215,7 @@ export const HeroSection: React.FC = () => {
                 className={`relative w-64 h-64 sm:w-80 sm:h-80 lg:w-92 lg:h-92 rounded-full p-2 bg-gradient-to-tr ${themePreset.gradientText} shadow-2xl`}
                 style={data.theme.accentGradient ? { backgroundImage: data.theme.accentGradient } : undefined}
               >
-                <div className="w-full h-full rounded-full overflow-hidden bg-slate-900 border-4 border-white dark:border-slate-950 shadow-inner relative">
+                <div className="w-full h-full rounded-full overflow-hidden bg-slate-900 border-4 border-white dark:border-slate-950 shadow-inner">
                   <img
                     src={resolveImageUrl(hero.profileImageUrl)}
                     alt={hero.name}
@@ -258,68 +224,7 @@ export const HeroSection: React.FC = () => {
                       (e.target as HTMLElement).style.display = 'none';
                     }}
                   />
-
-                  {/* Admin Edit Overlay */}
-                  {isAdmin && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <button
-                        onClick={() => { setShowImgMenu(v => !v); setShowUrlInput(false); }}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-12 h-12 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center hover:bg-black/80 border border-white/20"
-                        title="Edit profile photo"
-                      >
-                        <Camera className="w-5 h-5 text-white" />
-                      </button>
-                    </div>
-                  )}
                 </div>
-
-                {/* Image Edit Dropdown Menu */}
-                {isAdmin && showImgMenu && (
-                  <div className="absolute top-4 right-0 z-50 w-52 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-2xl backdrop-blur-xl overflow-hidden">
-                    <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-100 dark:border-white/5">
-                      <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Edit Photo</span>
-                      <button onClick={() => { setShowImgMenu(false); setShowUrlInput(false); }} className="text-slate-400 hover:text-slate-600">
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                    {/* Upload from device */}
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
-                    >
-                      <Upload className="w-4 h-4 text-purple-500" />
-                      Upload from device
-                    </button>
-                    {/* Paste URL */}
-                    <button
-                      onClick={() => setShowUrlInput(v => !v)}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
-                    >
-                      <LinkIcon className="w-4 h-4 text-blue-500" />
-                      Paste image URL
-                    </button>
-                    {showUrlInput && (
-                      <div className="px-3 pb-3 space-y-2">
-                        <input
-                          type="text"
-                          value={imgUrlDraft}
-                          onChange={e => setImgUrlDraft(e.target.value)}
-                          placeholder="https://..."
-                          className="w-full text-xs px-3 py-2 rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white outline-none focus:ring-1 focus:ring-purple-500"
-                          onKeyDown={e => e.key === 'Enter' && handleProfileImageUrl()}
-                          autoFocus
-                        />
-                        <button
-                          onClick={handleProfileImageUrl}
-                          className="w-full py-1.5 rounded-lg bg-purple-600 text-white text-xs font-semibold hover:bg-purple-700 transition-colors"
-                        >
-                          Apply
-                        </button>
-                      </div>
-                    )}
-                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleProfileImageFile} />
-                  </div>
-                )}
               </div>
 
               {/* Floating Badge Bottom Right */}

@@ -142,18 +142,37 @@ export const HeroProfileEditor: React.FC = () => {
               </div>
             </div>
 
-            {/* Profile Headshot Photo Upload & URL */}
-            <div className="space-y-2 pt-2">
-              <label className="text-xs font-semibold text-slate-300">Profile Photo (File or URL)</label>
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full overflow-hidden bg-slate-950 border-2 border-purple-500 shrink-0">
-                  <img
-                    src={heroForm.profileImageUrl}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
-                  />
+            {/* Profile Headshot Photo Upload & URL — Enhanced */}
+            <div className="space-y-3 pt-2">
+              <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                <ImageIcon className="w-3.5 h-3.5 text-purple-400" />
+                Profile Photo
+              </label>
+
+              {/* Large Preview + Click-to-upload */}
+              <div className="flex flex-col sm:flex-row items-center gap-5">
+                {/* Preview circle */}
+                <div className="relative group shrink-0">
+                  <div className="w-28 h-28 rounded-full overflow-hidden bg-slate-950 border-4 border-purple-500/60 shadow-lg shadow-purple-500/20">
+                    <img
+                      src={heroForm.profileImageUrl}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                      onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0.3'; }}
+                    />
+                  </div>
+                  {/* Hover overlay on preview */}
+                  <label
+                    htmlFor="profile-img-upload"
+                    className="absolute inset-0 rounded-full flex flex-col items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                  >
+                    <Upload className="w-5 h-5 text-white mb-1" />
+                    <span className="text-[10px] text-white font-semibold">Change</span>
+                  </label>
                 </div>
-                <div className="flex-grow space-y-2">
+
+                {/* Upload actions */}
+                <div className="flex-grow space-y-2 w-full">
                   <input
                     type="file"
                     id="profile-img-upload"
@@ -161,21 +180,28 @@ export const HeroProfileEditor: React.FC = () => {
                     onChange={handleProfileImageFile}
                     className="hidden"
                   />
-                  <button
-                    type="button"
-                    onClick={() => document.getElementById('profile-img-upload')?.click()}
-                    className="w-full py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-300 flex items-center justify-center gap-2"
+                  {/* Upload button */}
+                  <label
+                    htmlFor="profile-img-upload"
+                    className="w-full py-2.5 px-3 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-xs font-semibold text-purple-300 flex items-center justify-center gap-2 cursor-pointer transition-colors"
                   >
-                    <Upload className="w-3.5 h-3.5 text-purple-400" />
-                    <span>Upload Image File</span>
-                  </button>
-                  <input
-                    type="text"
-                    value={heroForm.profileImageUrl}
-                    onChange={(e) => setHeroForm(prev => ({ ...prev, profileImageUrl: e.target.value }))}
-                    placeholder="Or paste image URL"
-                    className="w-full px-3 py-1.5 rounded-xl bg-slate-950/80 border border-white/10 text-[11px] text-slate-300 focus:outline-none focus:border-purple-500"
-                  />
+                    <Upload className="w-3.5 h-3.5" />
+                    Upload from device
+                  </label>
+                  {/* URL input */}
+                  <div className="relative">
+                    <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
+                    <input
+                      type="text"
+                      value={heroForm.profileImageUrl}
+                      onChange={(e) => setHeroForm(prev => ({ ...prev, profileImageUrl: e.target.value }))}
+                      placeholder="Or paste an image URL…"
+                      className="w-full pl-8 pr-3 py-2 rounded-xl bg-slate-950/80 border border-white/10 text-[11px] text-slate-300 focus:outline-none focus:border-purple-500 placeholder:text-slate-600"
+                    />
+                  </div>
+                  <p className="text-[10px] text-slate-500 leading-relaxed">
+                    Accepts JPG, PNG, WebP · Max 15 MB · Hover preview to change
+                  </p>
                 </div>
               </div>
             </div>
