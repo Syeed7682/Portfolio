@@ -19,7 +19,8 @@ export const ExperienceSection: React.FC = () => {
 
   if (sectionConfig && !sectionConfig.isVisible) return null;
 
-  const items = data.experience;
+  // Reverse so the latest entry (last added) appears on top
+  const items = [...data.experience].reverse();
 
   const filteredItems = items.filter(item => {
     if (filter === 'all') return true;
