@@ -136,9 +136,25 @@ if (typeof window !== 'undefined') {
 const syncLocalCache = (dataToCache: PortfolioData) => {
   if (typeof window !== 'undefined') {
     try {
+      // Always delete old cache entry first so stale data is never retained
+      localStorage.removeItem(CACHE_KEY);
       localStorage.setItem(CACHE_KEY, JSON.stringify(dataToCache));
     } catch (e) {
-      console.warn('[Cache] Could not save to localStorage:', e);
+      console.warn('[Cache] Could not save full data to localStorage, saving compact version:', e);
+      try {
+        localStorage.removeItem(CACHE_KEY);
+        // If quota exceeded (due to large base64 image strings), save without massive strings
+        const compactHero = {
+          ...dataToCache.hero,
+          profileImageUrl: (dataToCache.hero.profileImageUrl && dataToCache.hero.profileImageUrl.length > 10000)
+            ? '/profile_suit.jpg'
+            : dataToCache.hero.profileImageUrl
+        };
+        const compactData = { ...dataToCache, hero: compactHero };
+        localStorage.setItem(CACHE_KEY, JSON.stringify(compactData));
+      } catch (e2) {
+        console.error('[Cache] Storage save completely failed:', e2);
+      }
     }
   }
 };
@@ -249,44 +265,42 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       ];
       const liveConfig = live.config || {};
 
-      // Retrieve current cached state to avoid overwriting user edits with default/incomplete backend config
-      const currentCache = getInitialData();
+      // Live database data is the canonical truth — overrides stale local cache
+      const liveTheme: SiteTheme = (liveConfig.theme && Object.keys(liveConfig.theme).length > 0)
+        ? { ...initialPortfolioData.theme, ...liveConfig.theme }
+        : initialPortfolioData.theme;
 
-      const theme: SiteTheme = (liveConfig.theme && Object.keys(liveConfig.theme).length > 0)
-        ? { ...currentCache.theme, ...liveConfig.theme }
-        : currentCache.theme;
+      const liveHero: HeroConfig = (liveConfig.hero && Object.keys(liveConfig.hero).length > 0)
+        ? { ...initialPortfolioData.hero, ...liveConfig.hero }
+        : initialPortfolioData.hero;
 
-      const rawHero = (liveConfig.hero && Object.keys(liveConfig.hero).length > 0)
-        ? { ...currentCache.hero, ...liveConfig.hero }
-        : currentCache.hero;
+      const liveAbout: AboutConfig = (liveConfig.about && Object.keys(liveConfig.about).length > 0)
+        ? { ...initialPortfolioData.about, ...liveConfig.about }
+        : initialPortfolioData.about;
 
-      const rawAbout = (liveConfig.about && Object.keys(liveConfig.about).length > 0)
-        ? { ...currentCache.about, ...liveConfig.about }
-        : currentCache.about;
+      const heroBio = (liveHero.bio || '').replace(/Undergraduate CSE Student/gi, 'CSE Graduate');
+      const aboutSubheading = (liveAbout.subheading || '').replace(/Undergraduate CSE Student/gi, 'CSE Graduate');
 
-      const heroBio = (rawHero.bio || '').replace(/Undergraduate CSE Student/gi, 'CSE Graduate');
-      const aboutSubheading = (rawAbout.subheading || '').replace(/Undergraduate CSE Student/gi, 'CSE Graduate');
-
-      const updatedHero = { ...rawHero, bio: heroBio };
-      const updatedAbout = { ...rawAbout, subheading: aboutSubheading };
+      const updatedHero = { ...liveHero, bio: heroBio };
+      const updatedAbout = { ...liveAbout, subheading: aboutSubheading };
 
       const updatedData: PortfolioData = {
         ...initialPortfolioData,
-        projects: (live.projects && live.projects.length > 0) ? live.projects : currentCache.projects,
-        publications: (live.publications && live.publications.length > 0) ? live.publications : currentCache.publications,
-        events: (mergedEvents && mergedEvents.length > 0) ? mergedEvents : currentCache.events,
-        experience: (live.experience && live.experience.length > 0) ? live.experience : currentCache.experience,
-        theme,
+        projects: Array.isArray(live.projects) ? live.projects : initialPortfolioData.projects,
+        publications: Array.isArray(live.publications) ? live.publications : initialPortfolioData.publications,
+        events: mergedEvents.length > 0 ? mergedEvents : (Array.isArray(live.events) ? live.events : initialPortfolioData.events),
+        experience: Array.isArray(live.experience) ? live.experience : initialPortfolioData.experience,
+        theme: liveTheme,
         hero: updatedHero,
         about: updatedAbout,
-        cv: (liveConfig.cv && Object.keys(liveConfig.cv).length > 0) ? { ...currentCache.cv, ...liveConfig.cv } : currentCache.cv,
-        sections: (liveConfig.sections && liveConfig.sections.length > 0) ? liveConfig.sections : currentCache.sections,
-        skillCategories: (liveConfig.skillCategories && liveConfig.skillCategories.length > 0) ? liveConfig.skillCategories : currentCache.skillCategories,
+        cv: (liveConfig.cv && Object.keys(liveConfig.cv).length > 0) ? { ...initialPortfolioData.cv, ...liveConfig.cv } : initialPortfolioData.cv,
+        sections: (liveConfig.sections && liveConfig.sections.length > 0) ? liveConfig.sections : initialPortfolioData.sections,
+        skillCategories: (liveConfig.skillCategories && liveConfig.skillCategories.length > 0) ? liveConfig.skillCategories : initialPortfolioData.skillCategories,
       };
 
       setData(updatedData);
 
-      // Cache fresh data locally for instant subsequent visits
+      // Purge old cache and write fresh state immediately
       syncLocalCache(updatedData);
       applyThemeToDocument(updatedData.theme);
 
