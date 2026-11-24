@@ -19,7 +19,7 @@ import { getThemePreset } from '../../utils/themeUtils';
 import { CvHoverPopup } from '../common/CvHoverPopup';
 
 export const HeroSection: React.FC = () => {
-  const { data, isColdStart } = usePortfolio();
+  const { data } = usePortfolio();
   const hero = data.hero;
   const themePreset = getThemePreset(data.theme.preset);
 
@@ -78,13 +78,6 @@ export const HeroSection: React.FC = () => {
 
   return (
     <section id="home" className="relative min-h-[92vh] flex items-center justify-center pt-28 pb-16 overflow-hidden">
-      {/* Cold-start banner: shown only when Render backend is waking up and no local cache exists */}
-      {isColdStart && (
-        <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center gap-2 py-2 px-4 bg-amber-500/90 dark:bg-amber-600/90 backdrop-blur-sm text-white text-xs font-medium shadow-lg">
-          <span className="inline-block w-2 h-2 rounded-full bg-white animate-ping" />
-          Server is waking up — fresh data loading shortly…
-        </div>
-      )}
       {/* Animated Mesh Gradients adapting to theme */}
       <div className="mesh-bg-container">
         <div className={`mesh-blob w-[50vw] h-[50vw] -top-[15%] -left-[10%] ${themePreset.blobColors.b1}`} />

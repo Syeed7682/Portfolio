@@ -61,7 +61,6 @@ interface PortfolioContextType {
   activeView: 'portfolio' | 'admin';
   toast: ToastInfo | null;
   isLoadingData: boolean;
-  isColdStart: boolean; // true when Render backend is waking up with no local cache
   selectedMediaModal: {
     isOpen: boolean;
     title: string;
@@ -125,11 +124,11 @@ interface PortfolioContextType {
 
 const AUTH_KEY = 'syeed_portfolio_isAdmin';
 
-const CACHE_KEY = 'syeed_portfolio_cached_data_v3';
+const CACHE_KEY = 'syeed_portfolio_cached_data_v4';
 
 // Delete all old cache versions so the old design never shows again
 if (typeof window !== 'undefined') {
-  ['syeed_portfolio_cached_data', 'syeed_portfolio_cached_data_v1', 'syeed_portfolio_cached_data_v2'].forEach(
+  ['syeed_portfolio_cached_data', 'syeed_portfolio_cached_data_v1', 'syeed_portfolio_cached_data_v2', 'syeed_portfolio_cached_data_v3'].forEach(
     (oldKey) => localStorage.removeItem(oldKey)
   );
 }
@@ -209,9 +208,6 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return sessionStorage.getItem(AUTH_KEY) === 'true';
   });
   const [isLoadingData, setIsLoadingData] = useState(false);
-  // True when no localStorage cache exists AND backend hasn't responded yet (Render cold start)
-  const hasLocalCache = typeof window !== 'undefined' && !!localStorage.getItem(CACHE_KEY);
-  const [isColdStart, setIsColdStart] = useState(!hasLocalCache);
   // Admin credentials are now persisted in MongoDB via the config API
   const [adminEmail, setAdminEmail] = useState<string>('');
   const [adminPin, setAdminPin] = useState<string>('');
@@ -239,7 +235,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const fetchLiveData = async (silent = false) => {
     if (!silent) setIsLoadingData(true);
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout for Render cold start
 
     try {
       const res = await fetch(`${API_BASE}/api/portfolio-data`, {
@@ -293,14 +289,12 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       // Cache fresh data locally for instant subsequent visits
       syncLocalCache(updatedData);
       applyThemeToDocument(updatedData.theme);
-      setIsColdStart(false); // backend is awake, hide any cold-start UI
 
       setAdminEmail(liveConfig.adminEmail || 'kmsyeedasif@gmail.com');
       setAdminPin(liveConfig.adminPin || import.meta.env.VITE_ADMIN_PIN || '5264');
       console.log('[Portfolio] Live data loaded and cached ✓');
     } catch (err) {
       console.warn('[Portfolio] Live fetch deferred (backend waking up or offline). Displaying instant cached data.');
-      setIsColdStart(false); // hide banner even on failure
     } finally {
       clearTimeout(timeoutId);
       setIsLoadingData(false);
@@ -758,7 +752,6 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         activeView,
         toast,
         isLoadingData,
-        isColdStart,
         selectedMediaModal,
         loginAdmin,
         logoutAdmin,

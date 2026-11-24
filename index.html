@@ -31,7 +31,10 @@
   <script>
     (function () {
       try {
-        var cached = localStorage.getItem('syeed_portfolio_cached_data_v3');
+        ['syeed_portfolio_cached_data', 'syeed_portfolio_cached_data_v1', 'syeed_portfolio_cached_data_v2', 'syeed_portfolio_cached_data_v3'].forEach(
+          function (k) { localStorage.removeItem(k); }
+        );
+        var cached = localStorage.getItem('syeed_portfolio_cached_data_v4');
         if (cached) {
           var data = JSON.parse(cached);
           if (data && data.theme) {
@@ -44,6 +47,9 @@
               document.documentElement.setAttribute('data-preset', data.theme.preset);
             }
           }
+        } else {
+          document.documentElement.classList.add('dark');
+          document.documentElement.setAttribute('data-preset', 'midnight');
         }
       } catch (e) { }
     })();

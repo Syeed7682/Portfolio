@@ -2,12 +2,12 @@ import { PortfolioData } from '../types';
 
 export const initialPortfolioData: PortfolioData = {
   theme: {
-    preset: 'purple',
+    preset: 'midnight',
     mode: 'dark',
-    accentColor: '#8b5cf6',
-    accentGradient: 'linear-gradient(135deg, #a855f7 0%, #ec4899 50%, #3b82f6 100%)',
+    accentColor: '#64748b',
+    accentGradient: 'linear-gradient(135deg, #64748b 0%, #475569 50%, #334155 100%)',
     glassBlur: 16,
-    borderRadius: 'rounded-2xl',
+    borderRadius: 'rounded-xl',
   },
   sections: [
     {
@@ -105,7 +105,7 @@ export const initialPortfolioData: PortfolioData = {
     primaryCtaLink: '#contact',
     secondaryCtaText: 'View My Work',
     secondaryCtaLink: '#portfolio',
-    profileImageUrl: '/src/assets/LinkedIn_HeadShot.png',
+    profileImageUrl: '/profile_suit.jpg',
     floatingBadgeTitle: 'PASSIONATE',
     floatingBadgeSubtitle: 'Developer & Data Scientist',
     githubUrl: 'https://github.com/Syeed7682',
