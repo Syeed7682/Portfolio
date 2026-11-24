@@ -178,48 +178,15 @@ const applyThemeToDocument = (theme?: SiteTheme) => {
   }
 
   const preset = getThemePreset(theme.preset);
-  document.documentElement.setAttribute('data-preset', theme.preset || 'purple');
+  document.documentElement.setAttribute('data-preset', theme.preset || 'midnight');
   document.documentElement.style.setProperty('--theme-accent', theme.accentColor || preset.accent);
   document.documentElement.style.setProperty('--theme-gradient', theme.accentGradient || preset.gradient);
 };
 
 const getInitialData = (): PortfolioData => {
-  if (typeof window !== 'undefined') {
-    try {
-      const cached = localStorage.getItem(CACHE_KEY);
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (parsed && parsed.hero && parsed.projects) {
-          let heroBio = parsed.hero.bio || '';
-          if (heroBio.includes("Undergraduate CSE Student")) {
-            heroBio = heroBio.replace(/Undergraduate CSE Student/gi, "CSE Graduate");
-          }
-          let aboutSubheading = parsed.about?.subheading || '';
-          if (aboutSubheading.includes("Undergraduate CSE Student")) {
-            aboutSubheading = aboutSubheading.replace(/Undergraduate CSE Student/gi, "CSE Graduate");
-          }
-          const loadedData: PortfolioData = {
-            ...initialPortfolioData,
-            ...parsed,
-            hero: {
-              ...initialPortfolioData.hero,
-              ...parsed.hero,
-              bio: heroBio,
-            },
-            about: {
-              ...initialPortfolioData.about,
-              ...parsed.about,
-              subheading: aboutSubheading,
-            },
-          };
-          applyThemeToDocument(loadedData.theme);
-          return loadedData;
-        }
-      }
-    } catch (e) {
-      console.warn('[Cache] Could not parse local cache:', e);
-    }
-  }
+  // ALWAYS return initialPortfolioData as the first render.
+  // This prevents stale localStorage cache from flashing an old theme/photo.
+  // The live MongoDB data will replace this via fetchLiveData() on mount.
   applyThemeToDocument(initialPortfolioData.theme);
   return initialPortfolioData;
 };
@@ -342,7 +309,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
 
     const preset = getThemePreset(data.theme.preset);
-    document.documentElement.setAttribute('data-preset', data.theme.preset || 'purple');
+    document.documentElement.setAttribute('data-preset', data.theme.preset || 'midnight');
     document.documentElement.style.setProperty('--theme-accent', data.theme.accentColor || preset.accent);
     document.documentElement.style.setProperty('--theme-gradient', data.theme.accentGradient || preset.gradient);
   }, [data.theme.mode, data.theme.preset, data.theme.accentColor, data.theme.accentGradient]);

@@ -31,31 +31,17 @@
   <script>
     (function () {
       try {
-        var currentCacheKey = 'syeed_portfolio_cached_data_v5';
+        // Purge ALL old cache keys — fresh data comes from MongoDB on mount
         for (var i = localStorage.length - 1; i >= 0; i--) {
           var k = localStorage.key(i);
-          if (k && (k.startsWith('syeed_portfolio_') || k.includes('cached_data')) && k !== currentCacheKey) {
+          if (k && (k.startsWith('syeed_portfolio_') || k.includes('cached_data'))) {
             localStorage.removeItem(k);
           }
         }
-        var cached = localStorage.getItem(currentCacheKey);
-        if (cached) {
-          var data = JSON.parse(cached);
-          if (data && data.theme) {
-            if (data.theme.mode === 'dark') {
-              document.documentElement.classList.add('dark');
-            } else {
-              document.documentElement.classList.remove('dark');
-            }
-            if (data.theme.preset) {
-              document.documentElement.setAttribute('data-preset', data.theme.preset);
-            }
-          }
-        } else {
-          document.documentElement.classList.add('dark');
-          document.documentElement.setAttribute('data-preset', 'midnight');
-        }
       } catch (e) { }
+      // Always start with midnight dark theme — React will update from MongoDB
+      document.documentElement.classList.add('dark');
+      document.documentElement.setAttribute('data-preset', 'midnight');
     })();
   </script>
 </head>
