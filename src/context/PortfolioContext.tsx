@@ -183,16 +183,7 @@ const applyThemeToDocument = (theme?: SiteTheme) => {
   document.documentElement.style.setProperty('--theme-gradient', theme.accentGradient || preset.gradient);
 };
 
-const getInitialData = (): PortfolioData => {
-  // ALWAYS return initialPortfolioData as the first render.
-  // This guarantees the correct theme/photo from frame 1 (no purple flash).
-  // Content sections are hydrated from localStorage cache in useEffect (instant),
-  // then replaced with live MongoDB data when the fetch completes.
-  applyThemeToDocument(initialPortfolioData.theme);
-  return initialPortfolioData;
-};
-
-// Read localStorage cache for content hydration (called in useEffect, NOT in initial state)
+// Read localStorage cache for instant synchronous initial render (frame 0)
 const getCachedContentData = (): PortfolioData | null => {
   if (typeof window === 'undefined') return null;
   try {
@@ -201,35 +192,57 @@ const getCachedContentData = (): PortfolioData | null => {
     const parsed = JSON.parse(cached);
     if (!parsed || !parsed.hero || !parsed.projects) return null;
 
-    // Use cached content but FORCE the correct theme from initialPortfolioData
-    // so we never flash an old theme even from cache
+    // Use cached content but strictly sanitize theme and profile photo
+    // so we NEVER flash old purple theme or old LinkedIn picture
     const safeBio = (parsed.hero?.bio || '').replace(/Undergraduate CSE Student/gi, 'CSE Graduate');
     const safeSubheading = (parsed.about?.subheading || '').replace(/Undergraduate CSE Student/gi, 'CSE Graduate');
+
+    const safeTheme: SiteTheme = (parsed.theme && parsed.theme.preset && parsed.theme.preset !== 'purple')
+      ? { ...initialPortfolioData.theme, ...parsed.theme }
+      : initialPortfolioData.theme;
+
+    const safeProfileImage = (
+      parsed.hero.profileImageUrl &&
+      parsed.hero.profileImageUrl.length < 10000 &&
+      !parsed.hero.profileImageUrl.includes('LinkedIn_HeadShot')
+    )
+      ? parsed.hero.profileImageUrl
+      : initialPortfolioData.hero.profileImageUrl;
 
     return {
       ...initialPortfolioData,
       ...parsed,
-      // Always enforce the correct theme — never trust cached theme
-      theme: initialPortfolioData.theme,
+      theme: safeTheme,
       hero: {
         ...initialPortfolioData.hero,
         ...parsed.hero,
-        bio: safeBio,
-        // Keep profileImageUrl from cache only if it's a path (not huge base64)
-        profileImageUrl: (parsed.hero.profileImageUrl && parsed.hero.profileImageUrl.length < 10000)
-          ? parsed.hero.profileImageUrl
-          : initialPortfolioData.hero.profileImageUrl,
+        bio: safeBio || initialPortfolioData.hero.bio,
+        profileImageUrl: safeProfileImage,
       },
       about: {
         ...initialPortfolioData.about,
         ...parsed.about,
-        subheading: safeSubheading,
+        subheading: safeSubheading || initialPortfolioData.about.subheading,
       },
     };
   } catch (e) {
     console.warn('[Cache] Could not read cached content:', e);
     return null;
   }
+};
+
+const getInitialData = (): PortfolioData => {
+  // Synchronous initial state:
+  // 1. If valid cached data exists in localStorage, render it IMMEDIATELY (0ms, latest admin edits).
+  // 2. Otherwise render initialPortfolioData (which contains the latest backup data).
+  // In either case, the correct midnight theme and suit photo are guaranteed.
+  const cached = getCachedContentData();
+  if (cached) {
+    applyThemeToDocument(cached.theme);
+    return cached;
+  }
+  applyThemeToDocument(initialPortfolioData.theme);
+  return initialPortfolioData;
 };
 
 const PortfolioContext = createContext<PortfolioContextType | undefined>(undefined);
@@ -333,17 +346,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   useEffect(() => {
-    // Step 1: Instantly hydrate content from localStorage cache (synchronous, ~0ms)
-    // This fills in projects, experience, publications, etc. without waiting for network
-    const cachedContent = getCachedContentData();
-    if (cachedContent) {
-      setData(cachedContent);
-      applyThemeToDocument(cachedContent.theme);
-      console.log('[Portfolio] Instant cache hydration ✓');
-    }
-
-    // Step 2: Fetch live data from MongoDB (async, may take seconds on cold start)
-    // This replaces cached data with the absolute latest from the database
+    // Silent initial fetch: updates state from MongoDB without blocking UI
     fetchLiveData(true);
   }, []);
 
