@@ -129,8 +129,8 @@ export const initialPortfolioData: PortfolioData = {
       },
       {
         "label": "Publications & Preprints",
-        "value": "2+",
-        "icon": "BookOpen"
+        "value": "1+",
+        "icon": "CloseOpen"
       },
       {
         "label": "Trained Students",
@@ -140,7 +140,7 @@ export const initialPortfolioData: PortfolioData = {
       {
         "label": "Hackathons & Events",
         "value": "10+",
-        "icon": "Trophy"
+        "icon": "Organize"
       }
     ]
   },
@@ -393,23 +393,6 @@ export const initialPortfolioData: PortfolioData = {
       ],
       "image": "/src/assets/uav_defect_detection.jfif",
       "createdAt": "2025-01-01"
-    },
-    {
-      "_id": "pub-2",
-      "title": "Enhanced Multimodal Representation for Automated Medical Question Answering in Low-Resource Domains",
-      "description": "Proposed an efficient cross-attention architecture combining sparse BM25 token retrieval with contrastive visual representations to synthesize accurate radiologist diagnostic findings from multimodal inputs.",
-      "authors": "Kha. Mo. Syeed Asif, Dr. Ahmedur Rahman, et al.",
-      "conference": "IEEE QPAIN 2025 / Under Review",
-      "year": 2025,
-      "link": "https://doi.org/10.1109/sample.2025.001",
-      "doi": "10.1109/QPAIN.2025.1092",
-      "tags": [
-        "Medical AI",
-        "Multimodal LLMs",
-        "Computer Vision",
-        "RAG"
-      ],
-      "createdAt": "2025-01-20"
     }
   ],
   "events": [

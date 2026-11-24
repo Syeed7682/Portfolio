@@ -3,6 +3,7 @@ const express = require('express');
 const { MongoClient, ObjectId } = require('mongodb');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const nodemailer = require('nodemailer');
 const { Resend } = require('resend');
 
@@ -98,6 +99,69 @@ app.use((req, res, next) => {
     next();
 });
 
+// Helper to update src/data/initialData.ts whenever data is uploaded/saved
+const updateInitialDataFile = (data) => {
+    try {
+        const filePath = path.join(__dirname, 'src', 'data', 'initialData.ts');
+        if (fs.existsSync(path.dirname(filePath))) {
+            const content = `import { PortfolioData } from '../types';\n\nexport const initialPortfolioData: PortfolioData = ${JSON.stringify(data, null, 2)};\n`;
+            fs.writeFileSync(filePath, content, 'utf8');
+            console.log('[InitialData] src/data/initialData.ts updated successfully on disk ✓');
+            return true;
+        }
+    } catch (err) {
+        console.warn('[InitialData] Could not write initialData.ts to disk:', err.message);
+    }
+    return false;
+};
+
+const syncInitialDataFromDB = async () => {
+    try {
+        if (!configCollection || !projectsCollection) return;
+        const [events, certs, projects, publications, experience, configDoc] = await Promise.all([
+            eventsCollection ? eventsCollection.find().sort({ _id: -1 }).toArray() : Promise.resolve([]),
+            certCollection ? certCollection.find().sort({ _id: -1 }).toArray() : Promise.resolve([]),
+            projectsCollection ? projectsCollection.find().sort({ _id: -1 }).toArray() : Promise.resolve([]),
+            publicationsCollection ? publicationsCollection.find().sort({ _id: -1 }).toArray() : Promise.resolve([]),
+            experienceCollection ? experienceCollection.find().sort({ _id: -1 }).toArray() : Promise.resolve([]),
+            configCollection ? configCollection.findOne({ _id: 'global' }) : Promise.resolve(null)
+        ]);
+
+        const mergedEvents = [...(events || []), ...(certs || [])];
+        const cfg = configDoc || {};
+
+        const fullData = {
+            theme: cfg.theme || {
+                preset: 'midnight',
+                mode: 'dark',
+                accentColor: '#64748b',
+                accentGradient: 'linear-gradient(135deg, #64748b 0%, #475569 50%, #334155 100%)',
+                glassBlur: 16,
+                borderRadius: 'rounded-xl'
+            },
+            sections: cfg.sections || [],
+            hero: cfg.hero || {},
+            about: cfg.about || {},
+            projects: projects || [],
+            publications: publications || [],
+            events: mergedEvents || [],
+            experience: experience || [],
+            skillCategories: cfg.skillCategories || [],
+            messages: [],
+            cv: cfg.cv || {
+                filename: 'resume.pdf',
+                uploadedAt: new Date().toISOString(),
+                fileUrl: '/resume.pdf',
+                previewEnabled: true
+            }
+        };
+
+        updateInitialDataFile(fullData);
+    } catch (err) {
+        console.warn('[Sync] Could not sync initialData from DB:', err.message);
+    }
+};
+
 // Site Configuration API
 app.get('/api/config', async (req, res) => {
     try {
@@ -121,8 +185,106 @@ app.put('/api/config', async (req, res) => {
             { upsert: true }
         );
         clearCache();
+        // Automatically sync initialData.ts when config changes
+        syncInitialDataFromDB().catch(() => {});
         res.json({ success: true });
     } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Sync initialData endpoint
+app.post('/api/sync-initial-data', async (req, res) => {
+    try {
+        if (req.body && Object.keys(req.body).length > 0 && req.body.hero) {
+            updateInitialDataFile(req.body);
+            return res.json({ success: true, message: 'initialData.ts updated from payload' });
+        }
+        await syncInitialDataFromDB();
+        res.json({ success: true, message: 'initialData.ts updated from database' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Import Full Portfolio Data API (replaces collections & updates initialData.ts)
+app.post('/api/import-full', async (req, res) => {
+    try {
+        const data = req.body;
+        if (!data || !data.hero) {
+            return res.status(400).json({ error: "Invalid portfolio data format" });
+        }
+
+        if (configCollection) {
+            const configUpdates = {
+                theme: data.theme,
+                sections: data.sections,
+                hero: data.hero,
+                about: data.about,
+                skillCategories: data.skillCategories,
+                cv: data.cv,
+                updatedAt: new Date().toISOString()
+            };
+            await configCollection.updateOne(
+                { _id: 'global' },
+                { $set: configUpdates },
+                { upsert: true }
+            );
+        }
+
+        if (projectsCollection && Array.isArray(data.projects)) {
+            await projectsCollection.deleteMany({});
+            if (data.projects.length > 0) {
+                const clean = data.projects.map(p => {
+                    const doc = { ...p };
+                    delete doc._id;
+                    return doc;
+                });
+                await projectsCollection.insertMany(clean);
+            }
+        }
+
+        if (publicationsCollection && Array.isArray(data.publications)) {
+            await publicationsCollection.deleteMany({});
+            if (data.publications.length > 0) {
+                const clean = data.publications.map(p => {
+                    const doc = { ...p };
+                    delete doc._id;
+                    return doc;
+                });
+                await publicationsCollection.insertMany(clean);
+            }
+        }
+
+        if (eventsCollection && Array.isArray(data.events)) {
+            await eventsCollection.deleteMany({});
+            if (data.events.length > 0) {
+                const clean = data.events.map(e => {
+                    const doc = { ...e };
+                    delete doc._id;
+                    return doc;
+                });
+                await eventsCollection.insertMany(clean);
+            }
+        }
+
+        if (experienceCollection && Array.isArray(data.experience)) {
+            await experienceCollection.deleteMany({});
+            if (data.experience.length > 0) {
+                const clean = data.experience.map(e => {
+                    const doc = { ...e };
+                    delete doc._id;
+                    return doc;
+                });
+                await experienceCollection.insertMany(clean);
+            }
+        }
+
+        clearCache();
+        updateInitialDataFile(data);
+        res.json({ success: true, message: "All portfolio data imported to MongoDB and initialData updated!" });
+    } catch (error) {
+        console.error('[Import] Full import error:', error);
         res.status(500).json({ error: error.message });
     }
 });

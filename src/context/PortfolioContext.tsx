@@ -116,7 +116,8 @@ interface PortfolioContextType {
   updateCV: (cv: Partial<CVMetadata>) => void;
   // Global Reset / Import / Export
   resetToDefaults: () => void;
-  importConfig: (imported: PortfolioData) => void;
+  importConfig: (imported: PortfolioData) => Promise<void> | void;
+  syncInitialData: () => Promise<void>;
   // Admin Credentials
   updateAdminCredentials: (email: string, pin: string) => void;
   // Cache Management
@@ -768,14 +769,41 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     showToast('Portfolio reset to default state', 'info');
   };
 
-  const importConfig = (imported: PortfolioData) => {
+  const importConfig = async (imported: PortfolioData) => {
     if (!imported || !imported.hero) {
       showToast('Invalid configuration file format', 'error');
       return;
     }
     setData(imported);
     syncLocalCache(imported);
-    showToast('Configuration imported successfully!', 'success');
+    applyThemeToDocument(imported.theme);
+
+    try {
+      showToast('Uploading data to database & updating initial data…', 'info');
+      await apiRequest(`${API_BASE}/api/import-full`, {
+        method: 'POST',
+        body: JSON.stringify(imported),
+      });
+      await fetchLiveData(true);
+      showToast('Data uploaded, MongoDB updated, and initialData synchronized!', 'success');
+    } catch (err) {
+      console.warn('[Import] Remote sync failed, keeping local state:', err);
+      showToast('Configuration imported locally', 'info');
+    }
+  };
+
+  const syncInitialData = async () => {
+    try {
+      showToast('Synchronizing initialData.ts…', 'info');
+      await apiRequest(`${API_BASE}/api/sync-initial-data`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      showToast('initialData.ts synchronized successfully!', 'success');
+    } catch (err) {
+      console.warn('[Sync] Sync failed:', err);
+      showToast('Could not sync initialData.ts to server', 'error');
+    }
   };
 
   const updateAdminCredentials = (email: string, pin: string) => {
@@ -847,6 +875,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         updateCV,
         resetToDefaults,
         importConfig,
+        syncInitialData,
         updateAdminCredentials,
       }}
     >
