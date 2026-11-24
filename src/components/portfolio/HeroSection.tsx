@@ -137,7 +137,7 @@ export const HeroSection: React.FC = () => {
                 href={hero.primaryCtaLink || '#contact'}
                 className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-slate-950 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-100 dark:text-slate-950 font-bold text-sm shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
               >
-                <span>Get In Touch</span>
+                <span>{hero.primaryCtaText || 'Get In Touch'}</span>
               </a>
 
               {/* Resume / CV with Dynamic Theme Accent */}
@@ -159,7 +159,7 @@ export const HeroSection: React.FC = () => {
                 href={hero.secondaryCtaLink || '#portfolio'}
                 className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-white/90 hover:bg-slate-100 dark:bg-slate-900/90 dark:hover:bg-slate-800 text-slate-800 dark:text-white border border-slate-300/80 dark:border-white/10 font-bold text-sm shadow-sm hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
               >
-                <span>View My Work</span>
+                <span>{hero.secondaryCtaText || 'View My Work'}</span>
               </a>
             </div>
 
@@ -233,11 +233,11 @@ export const HeroSection: React.FC = () => {
                   <Code2 className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold tracking-wider">
-                    PASSIONATE
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold tracking-wider uppercase">
+                    {hero.floatingBadgeTitle || 'PASSIONATE'}
                   </p>
                   <p className="text-xs font-bold text-slate-900 dark:text-white">
-                    Developer & Data Scientist
+                    {hero.floatingBadgeSubtitle || 'Developer & Data Scientist'}
                   </p>
                 </div>
               </div>

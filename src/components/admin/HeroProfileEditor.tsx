@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   User, 
   Sparkles, 
@@ -12,15 +12,37 @@ import {
   Facebook, 
   Mail, 
   MapPin,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Code2
 } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
 
 export const HeroProfileEditor: React.FC = () => {
   const { data, updateHero, updateAbout, showToast } = usePortfolio();
-  const [heroForm, setHeroForm] = useState(data.hero);
+  const [heroForm, setHeroForm] = useState({
+    ...data.hero,
+    floatingBadgeTitle: data.hero.floatingBadgeTitle || 'PASSIONATE',
+    floatingBadgeSubtitle: data.hero.floatingBadgeSubtitle || 'Developer & Data Scientist',
+    primaryCtaText: data.hero.primaryCtaText || 'Get In Touch',
+    primaryCtaLink: data.hero.primaryCtaLink || '#contact',
+    secondaryCtaText: data.hero.secondaryCtaText || 'View My Work',
+    secondaryCtaLink: data.hero.secondaryCtaLink || '#portfolio',
+  });
   const [aboutForm, setAboutForm] = useState(data.about);
   const [newTypewriterTitle, setNewTypewriterTitle] = useState('');
+
+  useEffect(() => {
+    setHeroForm({
+      ...data.hero,
+      floatingBadgeTitle: data.hero.floatingBadgeTitle || 'PASSIONATE',
+      floatingBadgeSubtitle: data.hero.floatingBadgeSubtitle || 'Developer & Data Scientist',
+      primaryCtaText: data.hero.primaryCtaText || 'Get In Touch',
+      primaryCtaLink: data.hero.primaryCtaLink || '#contact',
+      secondaryCtaText: data.hero.secondaryCtaText || 'View My Work',
+      secondaryCtaLink: data.hero.secondaryCtaLink || '#portfolio',
+    });
+    setAboutForm(data.about);
+  }, [data.hero, data.about]);
 
   const handleSaveHero = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,6 +65,14 @@ export const HeroProfileEditor: React.FC = () => {
       ...prev,
       typewriterTitles: prev.typewriterTitles.filter((_, idx) => idx !== index),
     }));
+  };
+
+  const handleUpdateTypewriterTitle = (index: number, val: string) => {
+    setHeroForm(prev => {
+      const updated = [...prev.typewriterTitles];
+      updated[index] = val;
+      return { ...prev, typewriterTitles: updated };
+    });
   };
 
   const handleProfileImageFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -206,6 +236,41 @@ export const HeroProfileEditor: React.FC = () => {
               </div>
             </div>
 
+            {/* Photo Floating Badge (Bottom Right Badge on Profile Picture) */}
+            <div className="p-4 rounded-2xl bg-slate-950/60 border border-white/5 space-y-3">
+              <div className="flex items-center gap-2">
+                <Code2 className="w-3.5 h-3.5 text-purple-400" />
+                <h4 className="text-xs font-bold text-slate-200">
+                  Profile Photo Floating Badge
+                </h4>
+              </div>
+              <p className="text-[11px] text-slate-400">
+                The floating pill badge on the profile photo (e.g. &quot;PASSIONATE Developer &amp; Data Scientist&quot;).
+              </p>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-slate-300">Badge Top Tagline</label>
+                  <input
+                    type="text"
+                    value={heroForm.floatingBadgeTitle || ''}
+                    onChange={(e) => setHeroForm(prev => ({ ...prev, floatingBadgeTitle: e.target.value }))}
+                    placeholder="e.g. PASSIONATE"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-xs text-white focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-slate-300">Badge Main Title</label>
+                  <input
+                    type="text"
+                    value={heroForm.floatingBadgeSubtitle || ''}
+                    onChange={(e) => setHeroForm(prev => ({ ...prev, floatingBadgeSubtitle: e.target.value }))}
+                    placeholder="e.g. Developer & Data Scientist"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-xs text-white focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Hero Bio */}
             <div className="space-y-1.5 pt-2">
               <label className="text-xs font-semibold text-slate-300">Hero Bio Description</label>
@@ -216,6 +281,55 @@ export const HeroProfileEditor: React.FC = () => {
                 className="w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border border-white/10 text-xs text-white focus:outline-none focus:border-purple-500 resize-none"
               />
             </div>
+
+            {/* Call To Action Buttons (CTA) */}
+            <div className="p-4 rounded-2xl bg-slate-950/60 border border-white/5 space-y-3">
+              <h4 className="text-xs font-bold text-slate-200">
+                Call To Action (CTA) Buttons
+              </h4>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-slate-300">Primary Button Text</label>
+                  <input
+                    type="text"
+                    value={heroForm.primaryCtaText || ''}
+                    onChange={(e) => setHeroForm(prev => ({ ...prev, primaryCtaText: e.target.value }))}
+                    placeholder="Get In Touch"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-xs text-white focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-slate-300">Primary Button Link</label>
+                  <input
+                    type="text"
+                    value={heroForm.primaryCtaLink || ''}
+                    onChange={(e) => setHeroForm(prev => ({ ...prev, primaryCtaLink: e.target.value }))}
+                    placeholder="#contact"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-xs text-white focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-slate-300">Secondary Button Text</label>
+                  <input
+                    type="text"
+                    value={heroForm.secondaryCtaText || ''}
+                    onChange={(e) => setHeroForm(prev => ({ ...prev, secondaryCtaText: e.target.value }))}
+                    placeholder="View My Work"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-xs text-white focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-slate-300">Secondary Button Link</label>
+                  <input
+                    type="text"
+                    value={heroForm.secondaryCtaLink || ''}
+                    onChange={(e) => setHeroForm(prev => ({ ...prev, secondaryCtaLink: e.target.value }))}
+                    placeholder="#portfolio"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-xs text-white focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Typewriter Titles Tag Manager */}
@@ -224,7 +338,7 @@ export const HeroProfileEditor: React.FC = () => {
               Typewriter Animated Titles
             </h3>
             <p className="text-xs text-slate-400">
-              These rotating titles cycle continuously in the hero typewriter header.
+              These rotating titles cycle continuously in the hero typewriter header. You can edit any title directly below or add new ones.
             </p>
 
             <div className="flex gap-2">
@@ -248,13 +362,19 @@ export const HeroProfileEditor: React.FC = () => {
               {heroForm.typewriterTitles.map((title, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/60 border border-white/5 text-xs text-slate-200"
+                  className="flex items-center gap-2 p-2 rounded-xl bg-slate-950/60 border border-white/5"
                 >
-                  <span className="font-mono text-purple-300">{title}</span>
+                  <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => handleUpdateTypewriterTitle(idx, e.target.value)}
+                    className="flex-grow px-3 py-1.5 rounded-lg bg-slate-900 border border-white/10 text-xs text-purple-300 font-mono focus:outline-none focus:border-purple-500"
+                  />
                   <button
                     type="button"
                     onClick={() => handleRemoveTypewriterTitle(idx)}
-                    className="p-1 text-slate-500 hover:text-red-400 transition-colors"
+                    className="p-1.5 text-slate-500 hover:text-red-400 transition-colors rounded-lg hover:bg-white/5"
+                    title="Delete title"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
