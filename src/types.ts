@@ -76,6 +76,7 @@ export interface Project {
   featured?: boolean;
   metrics?: string;
   createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Publication {
@@ -90,6 +91,7 @@ export interface Publication {
   tags?: string[];
   image?: string;
   createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface EventAchievement {
@@ -102,6 +104,7 @@ export interface EventAchievement {
   organization?: string;
   credentialUrl?: string;
   createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface ExperienceItem {
@@ -114,6 +117,7 @@ export interface ExperienceItem {
   location?: string;
   tags?: string[];
   createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface SkillItem {
