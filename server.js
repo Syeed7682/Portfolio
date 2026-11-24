@@ -24,6 +24,7 @@ app.use(express.static(DIST_DIR, {
 
 // Serve assets folder since database contains paths like /src/assets/...
 app.use('/src/assets', express.static(path.join(__dirname, 'src/assets')));
+app.use('/initial-data-assets', express.static(path.join(__dirname, 'static-assets', 'initial-data-assets')));
 
 // Health check endpoints for UptimeRobot / uptime monitoring (prevents server sleep)
 app.get(['/health', '/api/health', '/ping'], (req, res) => {
